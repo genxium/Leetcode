@@ -1,0 +1,1 @@
+This is a solution(one of many) to the "Longest Common Subarray/Substring" problem, where the "definition of dp[i][j]" is slightly different from [that of the "Longest Common Subsequence" problem](https://github.com/genxium/Leetcode/tree/master/p1143_Longest_Common_Subsequence).
