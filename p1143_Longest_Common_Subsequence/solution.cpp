@@ -31,11 +31,9 @@ public:
                     
                 candidate = dp[i - 1][j];    
                 if (dp[i][j] < candidate) dp[i][j] = candidate;
-                
              
                 candidate = dp[i][j - 1];
                 if (dp[i][j] < candidate) dp[i][j] = candidate;
-                
 
                 if (text1[i] == text2[j]) {
                     candidate = dp[i - 1][j - 1] + 1;
