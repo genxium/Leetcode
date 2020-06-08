@@ -15,9 +15,14 @@ public:
 class MinStepRecordCmp
 {
 public:
-    int operator()(MinStepRecord const &v1, MinStepRecord const &v2) 
-    {
-      return v1.i < v2.i;
+    int operator()(MinStepRecord const *left, MinStepRecord const *right) {
+      return (left->i) < (right->i);
+    }
+    int operator()(MinStepRecord const *left, int const &right) {
+      return (left->i) < right;
+    }
+    int operator()(int const &left, MinStepRecord const *right) {
+      return left < (right->i);
     }
 };
 
@@ -28,6 +33,8 @@ class Solution {
       if (1 == n) {
         return 0;
       }
+      vector<MinStepRecord*> minSteps(n, NULL); // In ascending order w.r.t. "MinStepRecord.i". 
+
       /*
        * Greedy to take the locally maximum jump doesn't work to achieve least steps.
        * See [2,3,1,1,4] as an example.
@@ -37,7 +44,9 @@ class Solution {
        * The solution here is that we only increment "minSteps" at "nums[i]" which extends the "globalFurthestReachable",
        *
        * ```
-       * 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18
+       * [case#1]
+       *
+       * 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17
        * x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x
        * ^--------------|
        *    ^-----------------|
@@ -46,7 +55,9 @@ class Solution {
        * but not which doesn't.
        *
        * ```
-       * 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18
+       * [case#2]
+       *
+       * 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17
        * x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x
        * ^--------------|
        *    ^--------|
@@ -54,56 +65,74 @@ class Solution {
        *
        * However, there's an edge case for "increment `minSteps` as long as `nums[i]` extends `globalFurthestReachable`", the "minSteps" to arrive at "nums[12]" should be 2.
        * ```
-       * 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18
+       * [case#3]
+       *
+       * 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17
        * x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x  x
        * ^--------------|
        *    ^-----------------|
        *          ^-----------------------|
        * ```
        */
-      vector<MinStepRecord> minSteps; // In ascending order w.r.t. "MinStepRecord.i". 
       // Init.
-      MinStepRecord r; 
-      r.i = nums[0]; r.s = 1; // Initially we can reach "nums[0]" as the furthest position in 1 step.
-      minSteps.push_back(r);
+      MinStepRecord* r = new MinStepRecord(); 
+      r->i = nums[0]; r->s = 1; // Initially we can reach "nums[0]" as the furthest position in 1 step.
+      minSteps[0] = r;
+      int minStepsLastIndex = 0;
 
       // Loop.
       for (int i = 0; i < n; ++i) {
-        MinStepRecord globalFurthestRecord = minSteps.back(); 
-        int globalFurthestReachable = globalFurthestRecord.i; 
-        if (i > globalFurthestReachable) continue;
+        MinStepRecord* globalFurthestRecord = minSteps[minStepsLastIndex]; 
+        int globalFurthestReachable = globalFurthestRecord->i; 
+        if (i > globalFurthestReachable) {
+          continue;
+        }
 
         int candidateFurthestReachable = (i + nums[i] < n ? i + nums[i] : n-1);
         if (candidateFurthestReachable > globalFurthestReachable) {
-          MinStepRecord searchAssistiveR;
-          searchAssistiveR.i = i; 
-          vector<MinStepRecord>::iterator upper = upper_bound(minSteps.begin(), minSteps.end(), searchAssistiveR, MinStepRecordCmp());
-          vector<MinStepRecord>::iterator lower = lower_bound(minSteps.begin(), minSteps.end(), searchAssistiveR, MinStepRecordCmp());
+          vector<MinStepRecord*>::iterator upper = upper_bound(minSteps.begin(), minSteps.begin()+minStepsLastIndex+1, i, MinStepRecordCmp());
+          vector<MinStepRecord*>::iterator lower = lower_bound(minSteps.begin(), minSteps.begin()+minStepsLastIndex+1, i, MinStepRecordCmp());
 
-          // printf("for i == %d, searchAssistiveR: ", i);
-          // searchAssistiveR.print();
-
-          // printf("\t, upper: ");
-          // (*upper).print();
-
-          // printf("\t, lower: ");
-          // (*lower).print();
+          // printf("for i == %d:\n", i);
+          // printf("\tupper: ");
+          // (*upper)->print();
+          // printf("\tlower: ");
+          // (*lower)->print();
           
-          vector<MinStepRecord>::iterator pPrevRecord; 
-          if ((*lower).i == i) {
+          vector<MinStepRecord*>::iterator pPrevRecord; 
+          if ((*lower)->i == i) {
             pPrevRecord = lower;
           } else {
             pPrevRecord = upper;
           }
-          MinStepRecord candidateR;
-          candidateR.i = candidateFurthestReachable; 
-          candidateR.s = (*pPrevRecord).s + 1;
+          int newI = candidateFurthestReachable;
+          int newS = (*pPrevRecord)->s + 1;
+        
           // printf("globalFurthestReachable incremented from %d to %d, jumped under the reach of position %d, now candidateR.s == %d\n", globalFurthestReachable, candidateFurthestReachable, (*pPrevRecord).i, candidateR.s);
-          minSteps.push_back(candidateR);
+
+          /*
+           * Why not find a "`pPrevRecord` with larger `(*pPrevRecord).i`" for each "i"? 
+           *
+           * Check [case#3] above, and assume that we're at "nums[3]" with "minSteps == [MinStepRecord(i: 5, s: 1), MinStepRecord(i: 7, s: 2)]". Note that we reach this state of "minSteps" due to the deliberate rejection of [case#2], thus the "nums[3]" should take "minSteps" to a new state "minSteps == [MinStepRecord(i: 5, s: 1), MinStepRecord(i: 7, s: 2), MinStepRecord(i: 11, s: 2)]".    
+           *
+           * To reduce search complexity in future iterations, we can merge all "MinStepRecord"s with the same "MinStepRecord.s" value to the largest "MinStepRecord.i", e.g. in this example after "nums[3]" should result in "minSteps == [MinStepRecord(i: 5, s: 1), MinStepRecord(i: 11, s: 2)]".
+           */
+          if (globalFurthestRecord->s == newS) {
+            minSteps[minStepsLastIndex]->i = newI;
+          } else {
+            MinStepRecord* newR = new MinStepRecord();
+            newR->i = newI;
+            newR->s = newS;
+            minSteps[++minStepsLastIndex] = newR;
+          }
         }
       }
-      MinStepRecord globalFurthestRecord = minSteps.back(); 
-      return globalFurthestRecord.s;
+      MinStepRecord const *globalFurthestRecord = minSteps[minStepsLastIndex]; 
+      int toRet = globalFurthestRecord->s;
+      for (int i = 0; i <= minStepsLastIndex; ++i) {
+          delete minSteps[i];
+      }
+      return toRet;
     }
 };
 

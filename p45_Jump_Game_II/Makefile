@@ -1,2 +1,2 @@
 all:
-	g++ -o solution solution.cpp
+	g++ -o solution -g solution.cpp
