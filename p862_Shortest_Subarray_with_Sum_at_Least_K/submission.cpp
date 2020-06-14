@@ -51,7 +51,7 @@ public:
          * 
          * , which will result in a monotonically increasing "partialSum[candidatePositions[...]]".
          *
-         * What's more, at each "i" where "l < r < i" and "f(r) == l-1", although it's possibly true that "f(i) == f(r) == l-1", we should starting seeking "f(i)" from "l" for a smaller length than "r-(l-1)".
+         * What's more, at each "i" where "l < r < i" and "f(r) == l-1", although it's possibly true that "f(i) == f(r) == l-1", we should start seeking "f(i)" from "l" for a smaller length than "r-(l-1)".
          */
         for (int i = 1; i < nums.size(); ++i) {
             while(false == candidatePositions.empty() && partialSum[r] >= partialSum[i]) {
