@@ -5,8 +5,8 @@ public:
         if (0 == n) {
             return 0;
         }
-        vector<int> l(n, n); // l[i] is the leftmost index such that heights[l[i]] >= heights[l[i]+1] >= ... >= heights[i]
-        vector<int> r(n, n); // r[i] is the rightmost index such that heights[i] <= ... <= heights[r[i]-1] <= heights[r[i]]
+        vector<int> l(n, n); // l[i] is the leftmost index such that anyOf(heights[l[i]], heights[l[i]+1], ..., heights[i-1]) >= heights[i]
+        vector<int> r(n, n); // r[i] is the rightmost index such that heights[i] <= anyOf(heights[i+1], ..., heights[r[i]-1], heights[r[i]])
             
         /*
         * The following case
