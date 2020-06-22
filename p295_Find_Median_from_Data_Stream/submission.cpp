@@ -31,7 +31,7 @@ public:
                     *
                     * 2  6  6  10
                     *       ^
-                    * which is made of in "findMedian" to calculate the outcome when (0 == totalCount%2).
+                    * which is made use of in "findMedian" to calculate the outcome when (0 == totalCount%2).
                     * Another example for this branch case should be 
                     * 2  6  6  10  11
                     *       ^ 
@@ -90,7 +90,7 @@ public:
                     * , adding "3" should result in
                     * 2  3  6  6  6  10
                     *          ^
-                    * which is made of in "findMedian" to calculate the outcome when (0 == totalCount%2).
+                    * which is made use of in "findMedian" to calculate the outcome when (0 == totalCount%2).
                     */
                 }
             }
