@@ -51,7 +51,7 @@ class Solution {
 public:
     bool extendOrClose(Building* pNextBuilding, Building &currentOpenClosure, vector<Building> &ansBuffer, priority_queue<Building, vector<Building>, BuildingCompareHeap> &pq) {
         
-        // Returns false if the same "pNextBuilding"(including NULL) should be re-evaluated for the updated "justClosedClosure" & "currentOpenClosure".
+        // Returns false if the same "pNextBuilding"(including NULL) should be re-evaluated for the updated "currentOpenClosure".
                
         if (INVALID == currentOpenClosure.l) {
             if (NULL != pNextBuilding) {
@@ -79,13 +79,23 @@ public:
                 if (nextBuilding.h > currentOpenClosure.h) {
                     // here comes a trick, after using "BuildingCompareVec", we've guaranteed that "nextBuilding.h > currentOpenClosure.h" during iteration, it must be true that "nextBuilding.l != currentOpenClosure.l", otherwise "nextBuilding" should've come earlier 
                     shouldCloseTheCurrentOpenClosure = true;
+                    Building snappedRightHalf; // the snapped right-half by "pNextBuilding"
+                    if (nextBuilding.r < currentOpenClosure.r) {
+                        snappedRightHalf.l = nextBuilding.r;
+                        snappedRightHalf.r = currentOpenClosure.r;
+                        snappedRightHalf.h = currentOpenClosure.h; 
+                        pq.push(snappedRightHalf); // see "test case #7"                       
+                    }
                 } else {
                     // nextBuilding.l <= currentOpenClosure.r && nextBuilding.h <= currentOpenClosure.h
                     if (nextBuilding.h == currentOpenClosure.h) {
                         shouldExtendTheCurrentOpenClosure = true;
                     } else {
                         // nextBuilding.l <= currentOpenClosure.r && nextBuilding.h < currentOpenClosure.h
-                        pq.push(nextBuilding);                            
+                        if (nextBuilding.r > currentOpenClosure.r) {
+                            // OTHERWISE not a valid candidate now, and won't be in later iterations
+                            pq.push(nextBuilding);                            
+                        }
                         return true;
                     }
                 }
@@ -96,13 +106,6 @@ public:
             return true;
         } else {
             if (shouldCloseTheCurrentOpenClosure) {
-                Building snappedRightHalf; // the snapped right-half by "pNextBuilding"
-                if (NULL != pNextBuilding && pNextBuilding->r < currentOpenClosure.r) {
-                    snappedRightHalf.l = pNextBuilding->r;
-                    snappedRightHalf.r = currentOpenClosure.r;
-                    snappedRightHalf.h = currentOpenClosure.h; 
-                }
-                
                 currentOpenClosure.r = (
                     NULL == pNextBuilding 
                     ? 
@@ -110,28 +113,37 @@ public:
                     : 
                     (currentOpenClosure.r < pNextBuilding->l ? currentOpenClosure.r : pNextBuilding->l) // snapped by higher building
                 );     
-                Building toPushClosure(currentOpenClosure.l, currentOpenClosure.r, currentOpenClosure.h);
-                //printf("Closed toPushClosure(l:%d, r:%d, h:%d)\n", toPushClosure.l, toPushClosure.r, toPushClosure.h);
-                ansBuffer.push_back(toPushClosure);
+                Building justClosedClosure(currentOpenClosure.l, currentOpenClosure.r, currentOpenClosure.h);
+                //printf("Finished justClosedClosure(l:%d, r:%d, h:%d)\n", justClosedClosure.l, justClosedClosure.r, justClosedClosure.h);
+                ansBuffer.push_back(justClosedClosure);
                 
                 currentOpenClosure.reset(); // would be init again by "rotation from pq item" or "next iteration"
                 
                 while (false == pq.empty()) {
                     Building nextOpenClosureCandidate = pq.top();
-                    if (NULL != pNextBuilding && (nextOpenClosureCandidate.h < pNextBuilding->h && nextOpenClosureCandidate.l >= pNextBuilding->l)) {
+                    //printf("\tevaluating nextOpenClosureCandidate(l:%d, r:%d, h:%d)\n", nextOpenClosureCandidate.l, nextOpenClosureCandidate.r, nextOpenClosureCandidate.h);
+                    
+                    if (NULL != pNextBuilding) {
                         // NOT a valid candidate now, but could be in later iterations, consider "test case #9"
-                        break;
+                        if (nextOpenClosureCandidate.l > pNextBuilding->l) {
+                            break;
+                        } 
+                        if (nextOpenClosureCandidate.l == pNextBuilding->l && nextOpenClosureCandidate.h < pNextBuilding->h) {
+                            break;
+                        }
                     }
+                    
                     pq.pop();
                     // recall that "item" in pq must suffice "item.l <= toPushClosure.r && item.h < toPushClosure.h"
                     
-                    //printf("\tevaluating nextOpenClosureCandidate(l:%d, r:%d, h:%d)\n", nextOpenClosureCandidate.l, nextOpenClosureCandidate.r, nextOpenClosureCandidate.h);
-                    if (nextOpenClosureCandidate.r <= toPushClosure.r) {
+                    if (nextOpenClosureCandidate.r <= justClosedClosure.r) {
                         // NOT a valid candidate now, and won't be in later iterations
+                        // It's CRITICAL to check this condition even if a similar condition was checked before pushing into "pq". See "test case#7".
                         continue;
                     }
+                    
                     // rotate "currentOpenClosure"
-                    nextOpenClosureCandidate.l = toPushClosure.r;
+                    nextOpenClosureCandidate.l = justClosedClosure.r;
                     //printf("\twill rotate currentOpenClosure by nextOpenClosureCandidate(l:%d, r:%d, h:%d)\n", nextOpenClosureCandidate.l, nextOpenClosureCandidate.r, nextOpenClosureCandidate.h);
 
                     currentOpenClosure.l = nextOpenClosureCandidate.l;
@@ -140,9 +152,6 @@ public:
                     break;
                 }
                 
-                if (INVALID != snappedRightHalf.l) {
-                    pq.push(snappedRightHalf); // [WARNING] "snappedRightHalf" must be push into heap AFTER THE LOTTERY, consider "test case #7"                         
-                }
                 return false;
             }
         }
@@ -173,7 +182,7 @@ public:
         [[2,9,10],[3,7,15],[3,8,16],[5,8,11],[5,12,12],[15,20,10],[19,24,8]]
         
         test case #7
-        [[6,100,41],[7,15,70]]
+        [[6,100,41],[10,30,102],[70,90,72],[85,120,59]]
 
         test case #8
         [[2,4,70],[3,8,30],[6,100,41],[7,15,70],[10,30,102],[15,25,76],[60,80,91],[70,90,72],[85,120,59]]
@@ -190,11 +199,6 @@ public:
             buildingList.push_back(item);
         }
         sort(buildingList.begin(), buildingList.end(), BuildingCompareVec());
-        /*
-        for (auto &b : buildingList) {
-            printf("\tb(l:%d, r:%d, h:%d)\n", b.l, b.r, b.h);
-        }
-        */
             
         Building currentOpenClosure, justClosedClosure;
         vector<Building> ansBuffer;
@@ -210,7 +214,16 @@ public:
         while(false == extendOrClose(NULL, currentOpenClosure, ansBuffer, pq));
         
         int prevSegR = INT_MAX;
-        for (auto single : ansBuffer) {
+        for (int i = 0; i < ansBuffer.size(); ++i) {
+            auto single = ansBuffer[i];
+            
+            if (i+1 < ansBuffer.size()) {
+                auto nextSingle = ansBuffer[i+1];
+                if (single.l == nextSingle.l) {
+                    continue;
+                }
+            }
+            
             if (single.l > prevSegR) {
                 ans.push_back({prevSegR, 0});
             }
