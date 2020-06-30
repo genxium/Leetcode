@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <vector>
-#include <list>
-#include <map>
+#include <unordered_map>
 #include <string.h>
 using namespace std;
 
@@ -13,10 +12,12 @@ int lowIndirectLinks[MAXN];
 
 class Solution {
 public:
-    void dfs(int dfsDirectPredecessor, int cur, int &dfsIndex, map<int, list<int>> &adj, vector<vector<int>> &bridgesOut) {
+    void dfs(int dfsDirectPredecessor, int cur, int &dfsIndex, unordered_map<int, vector<int>> &adj, vector<vector<int>> &bridgesOut) {
         indexes[cur] = dfsIndex++;
         lowIndirectLinks[cur] = indexes[cur];
-        for (auto &nb : adj[cur]) {
+        int iUpper = adj[cur].size();
+        for (int i = 0; i < iUpper; ++i) {
+            int nb = adj[cur][i];
             if (INVALID == indexes[nb]) {
                 dfs(cur, nb, dfsIndex, adj, bridgesOut);
                 lowIndirectLinks[cur] = (lowIndirectLinks[cur] < lowIndirectLinks[nb] ? lowIndirectLinks[cur] : lowIndirectLinks[nb]);
@@ -39,21 +40,21 @@ public:
         */
         memset(indexes, INVALID, sizeof(indexes));
         memset(lowIndirectLinks, INVALID, sizeof(lowIndirectLinks));
-        map<int, list<int>> adj;
-        for (auto &connection : connections) {
+        unordered_map<int, vector<int>> adj;
+        for (vector<int> &connection : connections) {
             int u = connection[0];
             int v = connection[1];
             
             auto uIt = adj.find(u); 
             if (uIt == adj.end()) {
-                adj[u] = list<int>{};
+                adj[u] = vector<int>{};
             } else {
                 adj[u] = uIt->second;
             }
             
             auto vIt = adj.find(v);
             if (vIt == adj.end()) {
-                adj[v] = list<int>{};
+                adj[v] = vector<int>{};
             } else {
                 adj[v] = vIt->second;
             }
