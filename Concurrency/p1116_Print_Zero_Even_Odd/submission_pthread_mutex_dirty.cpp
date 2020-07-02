@@ -4,6 +4,16 @@ private:
     pthread_mutex_t zeroMux = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t oddMux = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t evenMux = PTHREAD_MUTEX_INITIALIZER;
+    
+    /*
+    This solution is dirty because it uses "thread#b to unlock a mutex held by thread#a", which generally results in "undefined behaviour" for most "pthread_mutex_t types".
+    
+    Moreover, if we use "pthread_mutex_t type `PTHREAD_MUTEX_ERRORCHECK`", this dirty solution will fail.
+    
+    // pthread_mutex_t zeroMux = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
+    // pthread_mutex_t oddMux = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
+    // pthread_mutex_t evenMux = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
+    */
 
 public:
     ZeroEvenOdd(int n) {
