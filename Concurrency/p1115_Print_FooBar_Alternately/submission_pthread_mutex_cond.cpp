@@ -1,3 +1,6 @@
+/*
+Note that "pthread_cond_wait(&certainCond, &certainMux)" must be called prior to the corresponding "pthread_cond_signal(&certainCond)" to receive the signal, otherwise it would wait forever.
+*/
 class FooBar {
 private:
     int n, counter, counterUpper;
@@ -22,13 +25,16 @@ public:
             if (counter >= counterUpper) {
                 pthread_mutex_unlock(&sharedMux);
                 sharedMuxObtained = false;
+                
+                // just to help it break as well
+                pthread_cond_signal(&barCond);
                 break;
             }
             if ((counter&1) == 0) {
                 //printf("counter == %d, foo\n", counter);
                 printFoo();
                 ++counter;
-                pthread_cond_signal(&barCond); // Is the corresponding "pthread_condition_wait(&barCond, &sharedMux)" called by now?
+                pthread_cond_signal(&barCond); // Is the corresponding "pthread_cond_wait(&barCond, &sharedMux)" called by now?
                 pthread_mutex_unlock(&sharedMux);
                 sharedMuxObtained = false;
             } else {
@@ -49,13 +55,16 @@ public:
             if (counter >= counterUpper) {
                 pthread_mutex_unlock(&sharedMux);
                 sharedMuxObtained = false;
+                
+                // just to help it break as well
+                pthread_cond_signal(&fooCond);
                 break;
             }
             if ((counter&1) == 1) {
                 //printf("counter == %d, bar\n", counter);
                 printBar();
                 ++counter;
-                pthread_cond_signal(&fooCond); // Is the corresponding "pthread_condition_wait(&fooCond, &sharedMux)" called by now?
+                pthread_cond_signal(&fooCond); // Is the corresponding "pthread_cond_wait(&fooCond, &sharedMux)" called by now?
                 pthread_mutex_unlock(&sharedMux);
                 sharedMuxObtained = false;
             } else {
@@ -66,3 +75,4 @@ public:
         }
     }
 };
+
