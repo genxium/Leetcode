@@ -2,6 +2,9 @@ class FooBar {
 private:
     int n, counter, counterUpper;
     pthread_mutex_t sharedMux = PTHREAD_MUTEX_INITIALIZER;
+    /*
+    * This solution is slow because it's basically spinning, although with a "sharedMux".
+    */
     
 public:
     FooBar(int n) {
