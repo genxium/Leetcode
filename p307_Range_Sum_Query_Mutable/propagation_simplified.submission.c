@@ -60,10 +60,10 @@ void RangeWrite(NumArray* currentRoot, int newSegLeftIndexClosed, int newSegRigh
   int indentSpaceCount = (level << 1);
   // printf("%*sRangeWrite, assigning [%d, %d) <- %d into [%d, %d):%d, allowResiduePropagation = %d.\n", indentSpaceCount, "", newSegLeftIndexClosed, newSegRightIndexOpen, unifiedValue, currentRoot->leftIndexClosed, currentRoot->rightIndexOpen, currentRoot->unifiedValue, allowResiduePropagation);
 
-  if (newSegLeftIndexClosed <= currentRoot->leftIndexClosed && newSegRightIndexOpen >=  currentRoot->rightIndexOpen) {
+  if (newSegLeftIndexClosed <= currentRoot->leftIndexClosed && newSegRightIndexOpen >= currentRoot->rightIndexOpen) {
     // Proactively stops at "full cover" update.
     currentRoot->unifiedValue = unifiedValue;
-    // printf("%*sRangeWrite, [%d, %d) updated to %d.\n", indentSpaceCount, "", currentRoot->leftIndexClosed, currentRoot->rightIndexOpen);
+    // printf("%*sRangeWrite, [%d, %d) updated to %d.\n", indentSpaceCount, "", currentRoot->leftIndexClosed, currentRoot->rightIndexOpen, currentRoot->unifiedValue);
     return;
   }
   if (unifiedValue == currentRoot->unifiedValue) {
