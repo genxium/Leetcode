@@ -1,6 +1,15 @@
-#define MAXN 10000 
 #define INVALID -1 
-int dp1[MAXN]; // the second dimension "[m]" is reduced to save space-complexity
+
+class ListEle {
+public:
+  int lmin, lmax;
+  ListEle *next;
+  ListEle(int aLmin, int aLmax) {
+    this->lmin = aLmin;
+    this->lmax = aLmax;
+    this->next = NULL;
+  }
+};
 
 class Solution {
   public:
@@ -69,12 +78,12 @@ class Solution {
          [1,2,4,2,5,7,2,4,9,0]
        */
       vector<int> dedupedPrices;
-      int cur = prices[0];
-      dedupedPrices.push_back(cur);
+      int curPrice = prices[0];
+      dedupedPrices.push_back(curPrice);
       for (int i = 1; i < prices.size(); ++i) {
-        if (prices[i] != cur) {
-          cur = prices[i]; 
-          dedupedPrices.push_back(cur);
+        if (prices[i] != curPrice) {
+          curPrice = prices[i]; 
+          dedupedPrices.push_back(curPrice);
         } 
       }
 
@@ -109,73 +118,91 @@ class Solution {
       (LMIN[0], LMAX[0]), (LMIN[1], LMAX[1]), ..., (LMIN[halfN-1], LMAX[halfN-1])
       ```
       , thus the problem is equivalent to "choosing (m-1) spots out of (halfN-1) to maximize SUM{GROUP_MAX_DIFF(c) | 0 <= c < m, 1 <= m <= k}".
+
+      In fact, it’s unnecessary to consider “not using all of k transactions”, as the optimal strategy is “buying at each LMIN[i] and selling immediately at LMAX[i]” if there were no transaction-count-limit. 
+
+      It can be proved by the fact that “LMAX[i-1] > LMIN[i]”, thus
+      - “(LMAX[i] - LMIN[i-1]) < (LMAX[i]-LMIN[i]) + (LMAX[i-1] - LMIN[i-1])”, and 
+      - "MergeDeduction = (LMAX[i-1] - LMIN[i])".
+
+      This hints a greedy approach to the rescue, that we'll always either
+      - merge the smallest {LMAX[i-1] - LMIN[i]}, or
+      - drop the smallest {LMAX[i] - LMIN[i]}
+      , up to "(halfN-1)-(k-1)" times.
       */
-      
       /*
       printf("MinimaMaxima(size: %d):\n", n);
       for (int i = 0; i < n; ++i) {
         pair<int, int> single = minimaMaxima[i];
-        printf("(%d, %d) ", single.first, single.second);
+        printf("%d ", single.first);
       }
       printf("\n");
       */
-      int ans = INT_MIN;
-
-      memset(dp1, INVALID, sizeof(dp1));
-      // preprocess "m == 1"
-      int minByFar = minimaMaxima[0].first; 
-      for (int i = 1; i < n; i+=2) {
-        int candidateMinByFar = minimaMaxima[i-1].first;
-        if (candidateMinByFar < minByFar) {
-          minByFar = candidateMinByFar; 
-        }
-        dp1[i] = (minimaMaxima[i].first - minByFar);
-        if (INVALID != dp1[i] && dp1[i] > ans) {
-          ans = dp1[i];
-        }
-      }
+      ListEle *head = NULL, *cur = NULL;
+      int ans = 0, mergeCountUpper = (halfN-k);
       
-      for (int m = 2; m <= k ; ++m) {
-        /*
-         * Stops at "i = 1" because we just won't sell at minimaMaxima[0], or dedupedPrices[0].
-         * 
-         * The traversal of "i" must be in reverse order such that we won't update "dp1[i][m]" by "dp1[j < i][m]". 
-         */
-        for (int i = n-1; i >= 1; i-=2) {
-          pair<int, int> single = minimaMaxima[i];
-          int reverseMinByFar = minimaMaxima[i-1].first; 
-          int jLower = ((m-1) << 1) - 1; // to do the (m-1)-th sale at minimaMaxima[j], "j" should be at least "2*(m-1) - 1" 
-          for (int j = i-2; j >= jLower; j-=2) {
-            pair<int, int> another = minimaMaxima[j];
-            pair<int, int> reverseMinCandidate = minimaMaxima[j+1];
-            if (reverseMinCandidate.first < reverseMinByFar) {
-              reverseMinByFar = reverseMinCandidate.first;
-            }
-            int candidateProfit = (minimaMaxima[i].first - reverseMinByFar);
-            if (INVALID != dp1[j]) {
-              candidateProfit += dp1[j];
-            } 
-            if (INVALID == dp1[i]) {
-              dp1[i] = candidateProfit;
-              //printf("\tUP#1 dp1[i:%d][m:%d] is updated to %d by dp1[j:%d][m-1:%d]==%d\n", j, i, m, dp1[i], j, m-1, dp1[j]);
-            } else {
-              if (candidateProfit > dp1[i]) {
-                dp1[i] = candidateProfit;
-                //printf("\tUP#2 dp1[i:%d][m:%d] is updated to %d by dp1[j:%d][m-1:%d]==%d\n", i, m, dp1[i], j, m-1, dp1[j]);
-              }
-            }
-          } 
-
-          if (INVALID != dp1[i] && dp1[i] > ans) {
-            ans = dp1[i];
-          } 
+      for (int i = 0; i < n; i+=2) {
+        ListEle *singleNode = new ListEle(minimaMaxima[i].first, minimaMaxima[i+1].first);
+        if (NULL == head) {
+          cur = singleNode;
+          head = cur;
+        } else {
+          cur->next = singleNode;
+          cur = cur->next;  
         }
+        ans += (cur->lmax - cur->lmin);
+      }
+      //printf("initially ans == %d\n", ans);
+      
+      int mergeCount = 0;
+      while (mergeCount < mergeCountUpper) {
+        int minDeduction = INT_MAX;
+        cur = head;
+        ListEle *prev = NULL, *targetPrev = NULL, *target = NULL;
+        int targetType = -1; // 0: to delete target 1: to merge target(as left-hand-side) 
+        
+        //printf("At mergeCount:%d\n", mergeCount);
+        while (NULL != cur) {
+          //printf("\tinvestigating cur:(%d, %d)\n", cur->lmin, cur->lmax);
+          int type0Candidate = (cur->lmax - cur->lmin);
+          if (type0Candidate < minDeduction) {
+            minDeduction = type0Candidate;
+            targetType = 0;
+            target = cur;
+            targetPrev = prev;
+          }
+          if (NULL != cur->next) {
+            int type1Candidate = (cur->lmax - cur->next->lmin);  
+            if (type1Candidate < minDeduction) {
+              minDeduction = type1Candidate;
+              targetType = 1;
+              target = cur;
+              targetPrev = prev;
+            }
+          }
+          prev = cur;
+          cur = cur->next;
+        }
+        
+        //printf("\ttargetType == %d\n", targetType);
+        
+        if (targetType == 0) {
+          if (NULL != targetPrev) {
+            targetPrev->next = target->next;
+          } else {
+            // head == target
+            head = target->next;
+          }
+        }
+        if (targetType == 1) {
+          ListEle* cachedNext = target->next;
+          target->next = cachedNext->next;
+          target->lmax = cachedNext->lmax;
+        }
+        ans -= minDeduction;
+        ++mergeCount;
       }
 
-      if (INT_MIN == ans) {
-        return 0;
-      }
       return ans;
     }
 };
-
