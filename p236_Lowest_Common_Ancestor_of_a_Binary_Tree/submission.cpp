@@ -30,7 +30,7 @@ public:
 
         lowestCommonAncestorExtra(root->right, p, q, foundP, foundQ, ans);
         if (NULL != ans) {
-            // ans is in the left subtree
+            // ans is in the right subtree
             return;
         }
         
