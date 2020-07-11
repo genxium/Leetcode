@@ -1,1 +1,1 @@
-cat file.txt | head -n10 | tail -1 
+cat file.txt | tail -n+10 | head -1
