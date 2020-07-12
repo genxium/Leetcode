@@ -43,7 +43,6 @@ public:
         resetIfApplicable();  
         awakeIfApplicable();
         pthread_mutex_unlock(&sharedMux);
-        
     }
 
     void oxygen(function<void()> releaseOxygen) {
