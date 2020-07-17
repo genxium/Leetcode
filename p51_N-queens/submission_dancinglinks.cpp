@@ -1,12 +1,5 @@
 #define DEBUGGING false // set it to false to disable debug logging
-
-#include <stdio.h>
-#include <vector>
-#include <map>
-#include <unordered_map>
-#include <list>
 #define INVALID -1
-using namespace std;
 
 class DcLinkNode {
 public:
@@ -26,25 +19,15 @@ DcLinkNode* buildLinks(vector<vector<int>> &adj, map<int, DcLinkNode*> &colHeads
 
   DcLinkNode* grandHead = new DcLinkNode(INVALID, INVALID);
   
-  if (DEBUGGING) {
-    printf("buildLinks, nOrigAdjYUpper:%d\n", nOrigAdjYUpper);
-  }
-
   for (int y = 0; y < nOrigAdjYUpper; ++y) {
     vector<int> xOfOnesAtThisY = adj[y];  
     DcLinkNode* rowHeadAtThisY = NULL;
     DcLinkNode* prevAtThisY = NULL;
 
-    if (DEBUGGING) {
-      printf("\tChecking the %d-th row.\n", y);
-    }
-
     for (int j = 0; j < xOfOnesAtThisY.size(); ++j) {
       DcLinkNode* curColHead = NULL;
       int xOfOne = xOfOnesAtThisY[j];
-      if (DEBUGGING) {
-        printf("\t\tChecking the %d-th column.\n", xOfOne);
-      }
+    
       if (colHeads.find(xOfOne) == colHeads.end()) {
         // lazily create "colHead" respectively
         DcLinkNode* newColHead = new DcLinkNode(INVALID, xOfOne);
@@ -65,18 +48,12 @@ DcLinkNode* buildLinks(vector<vector<int>> &adj, map<int, DcLinkNode*> &colHeads
         // connect with "curColHead" (vertically)
         curColHead->d = newNode;  
         newNode->u = curColHead;   
-        if (DEBUGGING) {
-          printf("\t\tConnected curColHead(origY: %d, origX: %d) <-> newNode(origY: %d, origX: %d) vertically.\n", curColHead->origY, curColHead->origX, newNode->origY, newNode->origX);
-        }
       }
 
       if (j == xOfOnesAtThisY.size()-1) {
         // connect cycle edges (horizontally)
         newNode->r = rowHeadAtThisY;  
         rowHeadAtThisY->l = newNode;
-        if (DEBUGGING) {
-          printf("\t\tConnected cyclic edge rowHeadAtThisY(origY: %d, origX: %d) <-> newNode(origY: %d, origX: %d) horizontally.\n", rowHeadAtThisY->origY, rowHeadAtThisY->origX, newNode->origY, newNode->origX);
-        }
       }
 
       if (colTails.find(xOfOne) == colTails.end()) {
@@ -88,10 +65,6 @@ DcLinkNode* buildLinks(vector<vector<int>> &adj, map<int, DcLinkNode*> &colHeads
         colTails[xOfOne] = newNode;
       }  
     }  
-  } 
-
-  if (DEBUGGING) {
-    printf("\tbuildLinks, milestone#1\n");
   }
 
   /* 
@@ -109,41 +82,20 @@ DcLinkNode* buildLinks(vector<vector<int>> &adj, map<int, DcLinkNode*> &colHeads
     // connect cycle edges (vertically)
     colTail->d = colHead;
     colHead->u = colTail;
-    if (DEBUGGING) {
-      printf("\t\tConnected cyclic edge colHead(origY: %d, origX: %d) <-> colTail(origY: %d, origX: %d) vertically.\n", colHead->origY, colHead->origX, colTail->origY, colTail->origX);
-    }
 
     if (NULL != prevAtThisY) {
       prevAtThisY->r = colHead; 
       colHead->l = prevAtThisY;
-      if (DEBUGGING) {
-        printf("\t\tConnected colHeads (origY: %d, origX: %d) <-> (origY: %d, origX: %d) horizontally.\n", prevAtThisY->origY, prevAtThisY->origX, colHead->origY, colHead->origX);
-      }
     } 
     prevAtThisY = colHead;
   }
   grandHead->r = colHeads.begin()->second;
   colHeads.begin()->second->l = grandHead;
-
-  if (DEBUGGING) {
-    printf("\tbuildLinks, milestone#2\n");
-  }
-
-  if (DEBUGGING) {
-    printf("\t\tConnected grandHead(origY: %d, origX: %d) <-> colHeads.begin(origY: %d, origX: %d) horizontally.\n", grandHead->origY, grandHead->origX, colHeads.begin()->second->origY, colHeads.begin()->second->origX);
-  }
-
+  
   // connect cyclic edges for "grandHead" (horizontally)
   colHeads.rbegin()->second->r = grandHead;
   grandHead->l = colHeads.rbegin()->second;
-  if (DEBUGGING) {
-    printf("\t\tConnected grandHead(origY: %d, origX: %d) <-> colHeads.rbegin(origY: %d, origX: %d) horizontally.\n", grandHead->origY, grandHead->origX, colHeads.rbegin()->second->origY, colHeads.rbegin()->second->origX);
-  }
-
-  if (DEBUGGING) {
-    printf("\tbuildLinks, milestone#3\n");
-  }
-
+  
   return grandHead;  
 }
 
@@ -184,21 +136,47 @@ void uncover(DcLinkNode* c) {
   c->l->r = c;
 } 
 
-void search(int k, DcLinkNode* grandHead, list<int> &selectedYs, map<int, DcLinkNode*> &colHeads, int &coveredColCount, int &xUpper, bool &found) {
-  if (true == found) {
-    return;
+vector<string> colVecToSolution(list<int> &selectedYs, int &n) {
+  vector<string> toRet;
+  for (int boardY = 0; boardY < n; ++boardY) {
+    string row = "";
+    for (int boardX = 0; boardX < n; ++boardX) {
+      row.push_back('.');
+    }
+    toRet.push_back(row);
   }
+  for (auto &yAdj : selectedYs) {
+    int boardY = (yAdj/n), boardX = (yAdj%n);
+    toRet[boardY][boardX] = 'Q';
+  }
+  return toRet;
+}
+
+void search(int k, DcLinkNode* grandHead, list<int> &selectedYs, map<int, DcLinkNode*> &colHeads, int &n, vector<vector<string>> &ans) {
   if (DEBUGGING) {
     printf("search, k:%d\n", k);
+  }
+  
+  /*
+    Note that the N-queens problem modeled here is slight different from "Exact Cover" in that a feasible answer doesn't have to hold a "1" in each "xAdj", for example answer
+    ```
+    .Q..
+    ...Q
+    Q...
+    ..Q.
+    ```
+    doesn't fill "xAdj == 10" and "xAdj == 15".
+  */
+  if (k == n) {
+    vector<string> singleAns = colVecToSolution(selectedYs, n);
+    ans.push_back(singleAns);
+    return;
   }
 
   DcLinkNode* c = grandHead->r;
   if (c == grandHead) {
     if (DEBUGGING) {
       printf("\tgot c(origY: %d, origX: %d) == grandHead(origY: %d, origX: %d)\n", c->origY, c->origX, grandHead->origY, grandHead->origX);
-    }
-    if (coveredColCount == xUpper) {
-      found = true;
     }
     return;
   }
@@ -207,7 +185,6 @@ void search(int k, DcLinkNode* grandHead, list<int> &selectedYs, map<int, DcLink
     printf("\tchosen c(origY: %d, origX: %d)\n", c->origY, c->origX);
   }
   cover(c);
-  ++coveredColCount;
   DcLinkNode* itr1 = c->d;
   while (itr1 != c) {
     selectedYs.push_back(itr1->origY);
@@ -221,20 +198,15 @@ void search(int k, DcLinkNode* grandHead, list<int> &selectedYs, map<int, DcLink
     while (itr2 != itr1) {
       DcLinkNode* colHead = colHeads[itr2->origX];
       cover(colHead);
-      ++coveredColCount;
       itr2 = itr2->r; 
     }
-    search(k+1, grandHead, selectedYs, colHeads, coveredColCount, xUpper, found);
-    if (true == found) {
-      return;
-    }
+    search(k+1, grandHead, selectedYs, colHeads, n, ans);
     // backtracking#1
     selectedYs.pop_back();
     itr2 = itr1->l;
     while (itr2 != itr1) {
       DcLinkNode* colHead = colHeads[itr2->origX];
       uncover(colHead);
-      --coveredColCount;
       itr2 = itr2->l; 
     }
     
@@ -243,44 +215,63 @@ void search(int k, DcLinkNode* grandHead, list<int> &selectedYs, map<int, DcLink
   }
   // backtracking#2
   uncover(c);
-  --coveredColCount;
 }
 
-int main() {
-  freopen ("test_cases.txt","r",stdin);
-  int yUpper = 0, xUpper = 0;
-  while (scanf("%d %d", &yUpper, &xUpper) != EOF) {
-    vector<vector<int>> adj;
-    for (int i = 0; i < yUpper; ++i) {
-      int xOfOnesCount;
-      vector<int> xOfOnes;
-      scanf("%d", &xOfOnesCount);
-      for (int j = 0; j < xOfOnesCount; ++j) {
-        int col = 0;
-        scanf("%d", &col); 
-        --col;
-        xOfOnes.push_back(col);
-      }
-      adj.push_back(xOfOnes);
+class Solution {
+public:
+    vector< vector<string> > solveNQueens(int n) {
+        vector<vector<int>> adj;
+        // build the constraints
+        /*
+        - Each "yAdj" represents "placing a queen at (boardY: (yAdj/n), boardX: (yAdj%n))"
+        - There're 4 types of "xAdj", 
+          -- [0, n) represents "boardY occupied", 
+          -- [n, 2n) represents "boardX occupied", 
+          -- [2n, 4n-3) represents "diagonal occupied", 
+          -- [4n-3, 6n-6) represents "reverse-diagonal occupied"
+        */
+        int yUpper = (n*n);  
+        int xUpper = (6*n - 6);    
+
+        for (int yAdj = 0; yAdj < yUpper; ++yAdj) {
+          int boardY = (yAdj/n), boardX = (yAdj%n);
+          adj.push_back(vector<int>{});
+          
+          // "boardY occupied" 
+          adj[yAdj].push_back(boardY);
+
+          // "boardX occupied" 
+          adj[yAdj].push_back(boardX + n);
+
+          // "diagonal occupied" 
+          int diagonalConstraint = boardY + boardX + 2*n-1;
+          if (diagonalConstraint >= 2*n && diagonalConstraint < 4*n-3) {
+            adj[yAdj].push_back(diagonalConstraint);            
+          }
+
+          // "reverse-diagonal occupied" 
+          int rDiagonalConstraint = n - 1 - boardY + boardX + 4*n - 4;
+          if (rDiagonalConstraint >= 4*n-3 && rDiagonalConstraint < 6*n-6) {
+            adj[yAdj].push_back(rDiagonalConstraint);
+          }
+          /*
+          printf("@(boardY:%d, boardX: %d)\n\t", boardY, boardX);
+          for (auto &xOfOne : adj[yAdj]) {
+            printf("%d, ", xOfOne);
+          }
+          printf("\n");
+          */
+        }
+
+        vector< vector<string> > ans;
+
+        map<int, DcLinkNode*> colHeads; // ordered for traversal
+        DcLinkNode* grandHead = buildLinks(adj, colHeads);
+
+        int k = 0;
+        list<int> selectedYs;
+        search(k, grandHead, selectedYs, colHeads, n, ans);
+        return ans;
     }
+};
 
-    map<int, DcLinkNode*> colHeads; // ordered for traversal
-    DcLinkNode* grandHead = buildLinks(adj, colHeads);
-
-    int k = 0, coveredColCount = 0;
-    list<int> selectedYs;
-    bool found = false;
-    search(k, grandHead, selectedYs, colHeads, coveredColCount, xUpper, found);
-    if (false == found || coveredColCount < xUpper) {
-      printf("NO\n");
-    } else {
-      printf("%d ", selectedYs.size());
-      for (auto &selectedY : selectedYs) {
-        printf("%d ", selectedY+1);
-      }
-      printf("\n");
-    }
-  }
-
-  return 0;
-}
