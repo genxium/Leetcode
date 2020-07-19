@@ -7,7 +7,7 @@ struct FenwickTree {
         bit.assign(n, 0);
     }
 
-    FenwickTree(vector<int> a) : FenwickTree(a.size()) {
+    FenwickTree(vector<int> &a) : FenwickTree(a.size()) {
         for (size_t i = 0; i < a.size(); i++)
             add(i, a[i]);
     }
