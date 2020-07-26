@@ -37,7 +37,7 @@ public:
       }
       
       // now that we've got both "parents[p]" and "parents[q]"
-      set<TreeNode*> pAncestors;
+      unordered_set<TreeNode*> pAncestors;
       TreeNode *cur = p;
       while (cur != NULL) {
         pAncestors.insert(cur);
