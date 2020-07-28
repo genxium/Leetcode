@@ -105,7 +105,6 @@ public:
       int n = target.size();
       vector<Rectangle> recs;
       
-      vector<int> bottomLeft{0, 0};
       int currentH = target[0], currentL = 0;
       for (int i = 1; i < n; ++i) {
         if (currentH != target[i]) {
