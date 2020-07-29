@@ -8,6 +8,8 @@
 #define NODE_TYPE_ROOT 0
 #define NODE_TYPE_INTERNAL 1
 #define NODE_TYPE_LEAF 2
+
+#define TERMINATOR_CH '#'
 using namespace std;
 
 class SuffixTreeNode {
@@ -116,6 +118,11 @@ public:
     }
     return it->second;
   }
+
+  void print(string& article, int level) {
+    int indentSpaceCount = (level << 1);
+    printf("%*shead:{start: %d, length:%d}, downChPosInArticle:%d, offset: %d\n", indentSpaceCount, "", head->start, head->length(), downChPosInArticle, offset);
+  }
 };
 
 void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, vector<SuffixTreeNode*>& leafs, SuffixTreeNode **pLastNewInternalNode, ActivePoint* pAp) {
@@ -200,11 +207,22 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
   */
 
   (*sharedLeafEnd) = (i+1);
+  if (article[i] == TERMINATOR_CH) {
+    /*
+    There could be multiple "TERMINATOR_CH"s in "article". 
+    */
+    return;
+  }
 
   int k = leafs.size();
-  printf("\nDoPhase, i:%d, *sharedLeafEnd:%d, k:%d, *pLastNewInternalNode:%p\n", i, *sharedLeafEnd, k, *pLastNewInternalNode);
+  printf("\nDoPhase, i:%d, *sharedLeafEnd:%d, k:%d\n", i, *sharedLeafEnd, k);
+  int level = 0;
+  int indentSpaceCount = (1 << level);
 
   for (int j = k; j <= i; ++j) { 
+    printf("%*s@j:%d, activePoint is\n", indentSpaceCount, "", j);
+    pAp->print(article, level+1);
+
     SuffixTreeNode* currentTail = pAp->tail(article);
     /*
     For each "j", if "NULL != currentTail" exists then 
@@ -212,19 +230,28 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
     - it's NOT GUARANTEED that "currentTail->start + pAp->offset == i-1", i.e. "currentTail" is NOT NECESSARILY of NODE_TYPE_LEAF. 
     */
     if (NULL == currentTail) {
+      printf("%*sNULL == currentTail\n", indentSpaceCount, "");
       char newDownCh = article[pAp->downChPosInArticle];
       SuffixTreeNode *newLeaf = new SuffixTreeNode(pAp->downChPosInArticle, sharedLeafEnd);
       pAp->head->children[newDownCh] = newLeaf;  
       newLeaf->parent = pAp->head;
       leafs.push_back(newLeaf);
 
+      printf("%*screated newLeaf only \n", indentSpaceCount, "");
+      newLeaf->print(article, level+1);
+
       /*
-      Update only "pAp->downChPosInArticle" here.
+      Update "pAp".
       */
       ++pAp->downChPosInArticle; 
+      if (0 <= pAp->offset) {
+        --pAp->offset;
+      }
     } else {
+      printf("%*scurrentTail is \n", indentSpaceCount, "");
+      currentTail->print(article, level+1);
       int toMatchLength = i-(pAp->downChPosInArticle)+1;
-      while (NULL != currentTail && toMatchLength <= currentTail->length()) {
+      while (NULL != currentTail && toMatchLength > currentTail->length()) {
         // walk the "ActivePoint" down
         pAp->head = currentTail;
         pAp->downChPosInArticle += currentTail->length();
@@ -241,7 +268,16 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
         newLeaf->parent = pAp->head;
         leafs.push_back(newLeaf);
 
+        printf("%*screated newLeaf only \n", indentSpaceCount, "");
+        newLeaf->print(article, level+1);
+
+        /*
+        Update "pAp".
+        */
         ++pAp->downChPosInArticle; 
+        if (0 <= pAp->offset) {
+          --pAp->offset;
+        }
       } else {
         // now that "toMatchLength <= currentTail->length()" 
         if (article[i] != article[currentTail->start+pAp->offset+1]) {
@@ -278,9 +314,12 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
           currentTail->parent = newInternalNode;
 
           // builds "lastNewInternalNode->suffixLink" if applicable
-          if (NULL != *pLastNewInternalNode) {
+          if (NULL != *pLastNewInternalNode && NULL == (*pLastNewInternalNode)->suffixLink) {
             (*pLastNewInternalNode)->suffixLink = newInternalNode;
-            (*pLastNewInternalNode) = newInternalNode;
+          }
+          (*pLastNewInternalNode) = newInternalNode;
+          if (1 == newInternalNode->length()) {
+            newInternalNode->suffixLink = root;
           }
 
           // create and connect "newLeaf"
@@ -288,8 +327,22 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
           newInternalNode->children[article[i]] = newLeaf;  
           newLeaf->parent = newInternalNode;
           leafs.push_back(newLeaf);
+
+          printf("%*screated newLeaf \n", indentSpaceCount, "");
+          newLeaf->print(article, level+1);
+
+          printf("%*screated newInternalNode \n", indentSpaceCount, "");
+          newInternalNode->print(article, level+1);
       
-          // TODO: Update "pAp" accordingly.
+          /*
+          Update "pAp".
+          */
+          ++pAp->downChPosInArticle;
+          if (0 <= pAp->offset) {
+            --pAp->offset;
+          }
+  
+          // TODO: How does "pAp->head" move along "pAp->head->suffixLink"?
         } else {
           /*
           Consider "article: xabxac#", we'll go into this case at 
@@ -357,13 +410,18 @@ SuffixTreeNode* BuildSuffixTree(string & article) {
   for (int i = 0; i < article.length(); ++i) { 
     DoPhase(root, i, article, &theSharedLeafEnd, leafs, &lastNewInternalNode, &ap);
   }
+
+  return root;
 }
 
 // driver program to test above functions 
 int main(int argc, char *argv[]) 
 { 
-  string article = "xabxac#";
+  string article = "xabxac"; article.push_back(TERMINATOR_CH);
+  // string article = "xabxacxabac"; article.push_back(TERMINATOR_CH); // still outputs wrong answer
   SuffixTreeNode* root = BuildSuffixTree(article);
+  printf("\nThe SuffixTree for \"%s\" is\n", article.c_str());
+  root->print(article, 1);
   return 0; 
 } 
 
