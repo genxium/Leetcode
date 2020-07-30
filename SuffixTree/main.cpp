@@ -436,7 +436,8 @@ int main(int argc, char *argv[])
   */
   //string article = "xabxacxaba"; article.push_back(TERMINATOR_CH); 
 
-  string article = "xabxacxabac"; article.push_back(TERMINATOR_CH); // still outputs wrong answer
+  // string article = "xabxacxabac"; article.push_back(TERMINATOR_CH);
+  string article = "abcabxabcd"; article.push_back(TERMINATOR_CH);
   SuffixTreeNode* root = BuildSuffixTree(article);
   printf("\nThe SuffixTree for \"%s\" is\n", article.c_str());
   root->print(article, 1);
