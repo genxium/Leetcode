@@ -240,10 +240,7 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
       printf("%*screated newLeaf only \n", indentSpaceCount, "");
       newLeaf->print(article, level+1);
 
-      /*
-      Update "pAp".
-      */
-      ++pAp->downChPosInArticle; 
+      ++pAp->downChPosInArticle;
       if (0 <= pAp->offset) {
         --pAp->offset;
       }
@@ -252,6 +249,7 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
       currentTail->print(article, level+1);
       int toMatchLength = i-(pAp->downChPosInArticle)+1;
       while (NULL != currentTail && toMatchLength > currentTail->length()) {
+        printf("%*swalking down...\n", indentSpaceCount, "");
         // walk the "ActivePoint" down
         pAp->head = currentTail;
         pAp->downChPosInArticle += currentTail->length();
@@ -262,6 +260,7 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
       }
       // now that either "NULL == currentTail" or "toMatchLength <= currentTail->length()" 
       if (NULL == currentTail) {
+        printf("%*scurrentTail is NULL after the walk-down\n", indentSpaceCount, "");
         char newDownCh = article[pAp->downChPosInArticle];
         SuffixTreeNode *newLeaf = new SuffixTreeNode(pAp->downChPosInArticle, sharedLeafEnd);
         pAp->head->children[newDownCh] = newLeaf;  
@@ -271,14 +270,15 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
         printf("%*screated newLeaf only \n", indentSpaceCount, "");
         newLeaf->print(article, level+1);
 
-        /*
-        Update "pAp".
-        */
-        ++pAp->downChPosInArticle; 
+        ++pAp->downChPosInArticle;
         if (0 <= pAp->offset) {
           --pAp->offset;
         }
       } else {
+        printf("%*sactivePoint is updated by the walk-down to \n", indentSpaceCount, "");
+        pAp->print(article, level+1);
+        printf("%*scurrentTail is updated by the walk-down to\n", indentSpaceCount, "");
+        currentTail->print(article, level+1);
         // now that "toMatchLength <= currentTail->length()" 
         if (article[i] != article[currentTail->start+pAp->offset+1]) {
           /*
@@ -318,8 +318,10 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
             (*pLastNewInternalNode)->suffixLink = newInternalNode;
           }
           (*pLastNewInternalNode) = newInternalNode;
-          if (1 == newInternalNode->length()) {
+          if (1 == newInternalNode->length() && newInternalNode->parent == root) {
+            // A special case for "->suffixLink" assignment.
             newInternalNode->suffixLink = root;
+            (*pLastNewInternalNode) = NULL;
           }
 
           // create and connect "newLeaf"
@@ -332,17 +334,22 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
           newLeaf->print(article, level+1);
 
           printf("%*screated newInternalNode \n", indentSpaceCount, "");
-          newInternalNode->print(article, level+1);
-      
-          /*
-          Update "pAp".
-          */
-          ++pAp->downChPosInArticle;
-          if (0 <= pAp->offset) {
-            --pAp->offset;
+          newInternalNode->print(article, level+1); 
+
+          if (NODE_TYPE_ROOT != pAp->head && NULL != pAp->head->suffixLink) {
+            pAp->head = pAp->head->suffixLink;
+            /* 
+            Don't change either 
+            - "pAp->downChPosInArticle", or 
+            - "pAp->offset" (because the equivalent is done at the head) 
+            when "pAp->head" follows "pAp->head->suffixLink"!
+            */
+          } else {
+            ++pAp->downChPosInArticle;
+            if (0 <= pAp->offset) {
+              --pAp->offset;
+            }
           }
-  
-          // TODO: How does "pAp->head" move along "pAp->head->suffixLink"?
         } else {
           /*
           Consider "article: xabxac#", we'll go into this case at 
@@ -417,8 +424,24 @@ SuffixTreeNode* BuildSuffixTree(string & article) {
 // driver program to test above functions 
 int main(int argc, char *argv[]) 
 { 
-  string article = "xabxac"; article.push_back(TERMINATOR_CH);
-  // string article = "xabxacxabac"; article.push_back(TERMINATOR_CH); // still outputs wrong answer
+  /*
+  An easy case.
+  */
+  // string article = "xabxac"; article.push_back(TERMINATOR_CH);
+
+  /*
+  A moderate case, we'll have the first "activePoint walk-down" for phase "9", @j:6.
+  ```
+  0123456789
+  xabxacxaba
+        ^  ^
+        k  i
+        j
+  ```
+  */
+  //string article = "xabxacxaba"; article.push_back(TERMINATOR_CH); 
+
+  string article = "xabxacxabac"; article.push_back(TERMINATOR_CH); // still outputs wrong answer
   SuffixTreeNode* root = BuildSuffixTree(article);
   printf("\nThe SuffixTree for \"%s\" is\n", article.c_str());
   root->print(article, 1);
