@@ -135,7 +135,7 @@ public:
   }
 };
 
-void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, vector<SuffixTreeNode*>& leafs, SuffixTreeNode **pLastNewInternalNode, ActivePoint* pAp) {
+void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, vector<SuffixTreeNode*>& leafs, SuffixTreeNode **pLastNewInternalNode, ActivePoint* pAp, int posAfterLastTerminatorCh) {
   /*
   This method is inevitably called "article.length()" times, which means that the overall time-complexity of "BuildSuffixTree" can only be “O(article.length())" if the time-complexity of "DoPhase(...)" is "O(1)" or "amortized O(1)", but how?
 
@@ -229,7 +229,7 @@ void DoPhase(SuffixTreeNode* root, int i, string &article, int* sharedLeafEnd, v
   int level = 0;
   int indentSpaceCount = (1 << level);
 
-  for (int j = k; j <= i; ++j) { 
+  for (int j = k+posAfterLastTerminatorCh; j <= i; ++j) { 
     printf("%*s@j:%d, activePoint is\n", indentSpaceCount, "", j);
     pAp->print(article, level+1);
 
@@ -405,12 +405,20 @@ SuffixTreeNode* BuildSuffixTree(string & article) {
   int theSharedLeafEnd = 0;
   vector<SuffixTreeNode*> leafs;
   SuffixTreeNode* lastNewInternalNode = NULL;
+  int posAfterLastTerminatorCh = 0;
 
   ActivePoint ap(root);
   ap.downChPosInArticle = 0; // initially points to article[downChPosInArticle:0], but no valid offset  
 
   for (int i = 0; i < article.length(); ++i) { 
-    DoPhase(root, i, article, &theSharedLeafEnd, leafs, &lastNewInternalNode, &ap);
+    DoPhase(root, i, article, &theSharedLeafEnd, leafs, &lastNewInternalNode, &ap, posAfterLastTerminatorCh);
+    if (article[i] == TERMINATOR_CH) {
+      leafs.clear();
+      posAfterLastTerminatorCh = i+1;
+      ap.head = root;
+      ap.downChPosInArticle = posAfterLastTerminatorCh;
+      ap.offset = INVALID;
+    }
   }
 
   return root;
@@ -437,7 +445,10 @@ int main(int argc, char *argv[])
   //string article = "xabxacxaba"; article.push_back(TERMINATOR_CH); 
 
   // string article = "xabxacxabac"; article.push_back(TERMINATOR_CH);
-  string article = "abcabxabcd"; article.push_back(TERMINATOR_CH);
+  // string article = "abcabxabcd"; article.push_back(TERMINATOR_CH);
+  // string article = "abc#abx#"; 
+  string article = "abc#abx#abcd#"; 
+
   SuffixTreeNode* root = BuildSuffixTree(article);
   printf("\nThe SuffixTree for \"%s\" is\n", article.c_str());
   root->print(article, 1);
