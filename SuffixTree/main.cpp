@@ -439,9 +439,10 @@ SuffixTreeNode* BuildSuffixTree(string & article) {
       ap.head = root;
       ap.downChPosInArticle = posAfterLastTerminatorCh;
       ap.offset = INVALID;
-      
+      /* 
       printf("\nTemp word stops, SuffixTree by far is \n");
       root->print(article, 1);
+      */
     }
   }
 
@@ -478,10 +479,11 @@ int main(int argc, char *argv[])
   // string article = "ababbaaa_ababbaaa#ababaa_ababaa#";
   // string article = "ababbaaa#"; 
   // string article = "abababaa#ababbaaa#"; 
-  string article = "ababbaaa#abababaa#"; 
+  // string article = "ababbaaa#abababaa#"; 
   // string article = "ababbaaa_ababbaaa#abababaa_abababaa#";
   // string article = "abababbaaa_abababbaaa#ababbaabaa_ababbaabaa#";
-  // string article = "abbbababbb_abbbababbb#baaabbabbb_baaabbabbb#abababbaaa_abababbaaa#abbbbbbbba_abbbbbbbba#bbbaabbbaa_bbbaabbbaa#ababbaabaa_ababbaabaa#baaaaabbbb_baaaaabbbb#babbabbabb_babbabbabb#ababaababb_ababaababb#bbabbababa_bbabbababa#";
+  // string article = "abbbababbb_abbbababbb#baaabbabbb_baaabbabbb#abababbaaa_abababbaaa#abbbbbbbba_abbbbbbbba#bbbaabbbaa_bbbaabbbaa#ababbaabaa_ababbaabaa#baaaaabbbb_baaaaabbbb#";
+  string article = "abbbababbb_abbbababbb#baaabbabbb_baaabbabbb#abababbaaa_abababbaaa#abbbbbbbba_abbbbbbbba#bbbaabbbaa_bbbaabbbaa#ababbaabaa_ababbaabaa#baaaaabbbb_baaaaabbbb#babbabbabb_babbabbabb#ababaababb_ababaababb#bbabbababa_bbabbababa#";
 
   SuffixTreeNode* root = BuildSuffixTree(article);
   printf("\nThe SuffixTree for \"%s\" is\n", article.c_str());
