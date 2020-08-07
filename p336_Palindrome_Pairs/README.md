@@ -1,0 +1,1 @@
+The solution presented in `submission_two_tries.cpp` requires an understanding of [p214_Shortest_Palindrome](https://github.com/genxium/Leetcode/tree/master/p214_Shortest_Palindrome) as a prerequisite.
