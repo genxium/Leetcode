@@ -26,6 +26,15 @@ public:
     }
     
     bool matchesExpectedLength(int x, vector<int> palindromeLenCountAtPos) {
+        /* 
+        "abecddccddc | cddceba"
+        A case where max(palindromeLenCountAtPos) doesn't fit, but there's actually a fit.
+        */
+
+        /*
+        "abeeba | ba"
+        Moreover, it has to be an exact fit, i.e. "any(palindromeLenCountAtPos) > x" doesn't suffice.
+        */
         for (int j = 0; j < palindromeLenCountAtPos.size(); ++j) {
             if (j == 0 && palindromeLenCountAtPos[j] > 1) {
                 if (palindromeLenCountAtPos[j] >= x) return true;

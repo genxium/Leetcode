@@ -5,7 +5,7 @@ class Solution {
       if (slen <= 1) return 1;
 
       // init
-      vector< vector<int> > palindromeLenCount; // "palindromeLenCount[i][j] == n" means that "the j-th palindrome ended at ss[i] has length n" 
+      vector< vector<int> > palindromeLenCount; // "palindromeLenCount[i][j] == n" means that "the j-th palindrome ended at s[i] has length n" 
       palindromeLenCount.push_back({1}); // A single character itself is of course a palindrome.
 
       int toRet = 1;
