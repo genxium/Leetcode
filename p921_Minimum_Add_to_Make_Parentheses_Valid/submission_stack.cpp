@@ -5,7 +5,7 @@ public:
       test case #1
       "()))((()())((((())))))))))))))))()()()()))(()())))))))))))))"
       */
-      int unmatchedRightHalfCnt = 0, l = S.length();
+      int orphanedRightHalvesCnt = 0, l = S.length();
       stack<char> stk;
     
       for (int i = 0; i < l; ++i) {
@@ -15,10 +15,10 @@ public:
           if (!stk.empty()) {
             stk.pop();
           } else {
-            ++unmatchedRightHalfCnt;
+            ++orphanedRightHalvesCnt;
           }
         }
       }
-      return unmatchedRightHalfCnt + stk.size();
+      return orphanedRightHalvesCnt + stk.size();
     }
 };
