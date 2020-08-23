@@ -12,7 +12,10 @@ void blocksOnCounter(int const expectedOld) {
     counter.compare_exchange_strong(localContainer, expectedOld+1);
     int afterCompareExchangeCounterVal = counter.load();
     printf("afterCompareExchangeCounterVal == %d\n", afterCompareExchangeCounterVal);
-    if (localContainer == expectedOld) break;
+    if (localContainer == expectedOld) {
+      // Although this whole function is not guaranteed atomic, both "localContainer" and "expectedOld" are local to this function (thus local to the current KernelThread), making this checkvalve effective, i.e. only passable if another KernelThread sets "counter" to value "expectedOld".
+      break;
+    }
     localContainer = expectedOld;
   }
 }
