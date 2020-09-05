@@ -83,6 +83,12 @@ public:
             } else {
                 VI targetCourseToReplace = stCollectionBack.representingCourses.top();
                 if (targetCourseToReplace[0] > course[0]) {
+                    /*
+                    As "courses[]" is sorted w.r.t. ascending order of ".dueDay", it's guaranteed that "targetCourseToReplace" won't be a valid candidate for "stCollectionBack" anymore after popped out, because by reaching here 
+                    - "targetCourseToReplace.duration > course.duration", 
+                    - && "targetCourseToReplace.dueDay <= course.dueDay", 
+                    - && "SUM(stCollectionBack.representingCourses.duration) + course.duration > course.dueDay".    
+                    */
                     stCollectionBack.representingCourses.pop();
                     stCollectionBack.representingCourses.push(course);
                     stCollectionBack.earliestDayToAchieve -= (targetCourseToReplace[0] - course[0]);
