@@ -5,7 +5,7 @@ The solution here is very similar to
 - that of https://github.com/genxium/Leetcode/tree/master/p1563_Stone_Game_V, and
 - that of https://github.com/genxium/Leetcode/blob/master/p1547_Minimum_Cost_to_Cut_a_Stick/submission_dp_iterative.cpp.
 
-"dp[l][r] == x" means that if "Player#1" is facing piles[l, ..., r], she can finally get up to "x" stones by following the rules to take turns.
+"dp[l][r] == x" means that if "Player#1" is facing piles[l, ..., r], it can finally get up to "x" stones by following the rules to take turns.
 */
 #define MAXN 20
 int dp[MAXN][MAXN];
