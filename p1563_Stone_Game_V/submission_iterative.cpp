@@ -1,4 +1,3 @@
-#define MAXN 500
 /*
 Note that in this problem, "stoneValue" cannot be re-ordered.
 
@@ -16,6 +15,7 @@ dp[l][k] = max{
             else sum(stoneValue[l, ..., k]+max(dp[l][k], dp[k+1][r])
             | k}
 */
+#define MAXN 500
 int dp[MAXN][MAXN]; 
 int ps[MAXN]; // "PrefixSum"
 

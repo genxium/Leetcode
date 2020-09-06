@@ -1,6 +1,12 @@
+/*
+Note that in this problem, "stoneValue" cannot be re-ordered.
+
+The solution here is very similar to 
+- that of https://github.com/genxium/Leetcode/tree/master/p1406_Stone_Game_III.
+*/
 #define INVALID -1
 #define MAXN 100
-int cache[MAXN+1][MAXN+1];
+int cache[MAXN+1][MAXN+1]; // "cache[i][m] == y" means that by being able to pick the first "piles[i, ..., i+2*m-1]" of "piles[i, ..., n-1]", Alex can get at most "y" points.   
 int ps[MAXN]; // "PrefixSum"
 
 class Solution {
