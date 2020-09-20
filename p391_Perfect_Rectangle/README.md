@@ -1,0 +1,1 @@
+The time limit of this problem is much harsher than that of [p850_Rectangle_Area_II](https://github.com/genxium/Leetcode/tree/master/p850_Rectangle_Area_II), thus a ["sped-up version" of the "area merge" approach](https://github.com/genxium/Leetcode/blob/master/p391_Perfect_Rectangle/submission_segtree_area_merge_optimized_TLE.cpp) is also used here (but still got TLE).

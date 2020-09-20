@@ -40,9 +40,15 @@ void RangeAdd(SegmentTreeNode* currentRoot, int newSegLeftIndexClosed, int newSe
   // Snap valid "[newSegLeftIndexClosed, newSegRightIndexOpen)"s.
   newSegLeftIndexClosed = (newSegLeftIndexClosed > currentRoot->leftIndexClosed ? newSegLeftIndexClosed : currentRoot->leftIndexClosed);
   newSegRightIndexOpen = (newSegRightIndexOpen < currentRoot->rightIndexOpen ? newSegRightIndexOpen : currentRoot->rightIndexOpen);
+  
+  int indentSpaceCount = (level << 1);
 
-  // int indentSpaceCount = (level << 1);
   // printf("%*sRangeAdd, currentRoot:[%d, %d), [newSegLeftIndexClosed:%d, newSegRightIndexOpen:%d), (y: %d, flag:%s)\n", indentSpaceCount, "", currentRoot->leftIndexClosed, currentRoot->rightIndexOpen, newSegLeftIndexClosed, newSegRightIndexOpen, unifiedYEdge.first, unifiedYEdge.second == TOP ? "TOP" : "BOTTOM");
+
+  if (0 < currentRoot->fullCoverAccDiff && unifiedYEdge.second == BOTTOM) {
+    gotOverlay = true;
+    return;
+  }
 
   if (newSegLeftIndexClosed <= currentRoot->leftIndexClosed && newSegRightIndexOpen >= currentRoot->rightIndexOpen) {
     // printf("%*sRangeAdd(pre), currentRoot:[%d, %d).fullCoverAccDiff == %d\n", indentSpaceCount, "", currentRoot->leftIndexClosed, currentRoot->rightIndexOpen, currentRoot->fullCoverAccDiff);
@@ -52,15 +58,12 @@ void RangeAdd(SegmentTreeNode* currentRoot, int newSegLeftIndexClosed, int newSe
     } else {
       currentRoot->fullCoverAccDiff += +1;
     }
-    if (currentRoot->fullCoverAccDiff > 1) {
-      gotOverlay = true;
-    }
     // printf("%*sRangeAdd(post), currentRoot:[%d, %d).fullCoverAccDiff == %d\n", indentSpaceCount, "", currentRoot->leftIndexClosed, currentRoot->rightIndexOpen, currentRoot->fullCoverAccDiff);
     return;
   }
   int mid = ((currentRoot->leftIndexClosed + currentRoot->rightIndexOpen) >> 1);
+  int lChildIdx = (currentRoot->idx << 1);
   if (newSegLeftIndexClosed < mid) {
-    int lChildIdx = (currentRoot->idx << 1);
     if (0 == theTree[lChildIdx].idx) {
       theTree[lChildIdx].idx = lChildIdx;
       theTree[lChildIdx].leftIndexClosed = currentRoot->leftIndexClosed;
@@ -79,9 +82,9 @@ void RangeAdd(SegmentTreeNode* currentRoot, int newSegLeftIndexClosed, int newSe
     }
     RangeAdd(&(theTree[lChildIdx]), newSegLeftIndexClosed, newSegRightIndexOpen, unifiedYEdge, gotOverlay, level+1);
   }
-  
+
+  int rChildIdx = (currentRoot->idx << 1)+1;
   if (newSegRightIndexOpen > mid) {
-    int rChildIdx = (currentRoot->idx << 1)+1;
     if (0 == theTree[rChildIdx].idx) {
       theTree[rChildIdx].idx = rChildIdx;
       theTree[rChildIdx].leftIndexClosed = mid;
@@ -98,31 +101,8 @@ void RangeAdd(SegmentTreeNode* currentRoot, int newSegLeftIndexClosed, int newSe
     }
     RangeAdd(&(theTree[rChildIdx]), newSegLeftIndexClosed, newSegRightIndexOpen, unifiedYEdge, gotOverlay, level+1);
   }
-}
-
-void RangeSum(SegmentTreeNode* root, int targetLeftIndexClosed, int targetRightIndexOpen, int* pResult) {
-  // Reject invalid "[targetLeftIndexClosed, targetRightIndexOpen)"s. 
-  if (targetLeftIndexClosed >= targetRightIndexOpen) return;
-  if (targetLeftIndexClosed >= root->rightIndexOpen) return;
-  if (targetRightIndexOpen <= root->leftIndexClosed) return;
-
-  // Snap valid "[targetLeftIndexClosed, targetRightIndexOpen)"s.
-  targetLeftIndexClosed = (targetLeftIndexClosed > root->leftIndexClosed ? targetLeftIndexClosed : root->leftIndexClosed);
-  targetRightIndexOpen = (targetRightIndexOpen < root->rightIndexOpen ? targetRightIndexOpen : root->rightIndexOpen);
-
-  if (0 < root->fullCoverAccDiff) {
-    (*pResult) = (*pResult) + (root->rightXClosed - root->leftXClosed);
-    return;
-  }
-
-  int lChildIdx = (root->idx << 1);
-  if (0 != theTree[lChildIdx].idx) {
-    RangeSum(&(theTree[lChildIdx]), targetLeftIndexClosed, targetRightIndexOpen, pResult);
-  }
-  int rChildIdx = (root->idx << 1)+1;
-  if (0 != theTree[rChildIdx].idx) {
-    RangeSum(&(theTree[rChildIdx]), targetLeftIndexClosed, targetRightIndexOpen, pResult);
-  }
+  
+  currentRoot->fullCoverAccDiff = min(theTree[lChildIdx].fullCoverAccDiff, theTree[rChildIdx].fullCoverAccDiff);
 }
 
 class Solution {
@@ -182,9 +162,9 @@ public:
       SegmentTreeNode &root = theTree[rootIdx];
       root.idx = rootIdx;
       root.leftIndexClosed = 0;
-      root.rightIndexOpen = sortedDedupedXList.size();
+      root.rightIndexOpen = sortedDedupedXList.size()-1;
       root.leftXClosed = discretizedXDict[root.leftIndexClosed];
-      root.rightXClosed = INT_MAX;
+      root.rightXClosed = discretizedXDict[root.rightIndexOpen];
       
       vector<vector<int>> sortedYEdgeList;
       for (Rectangle &rec : recs) {
@@ -201,15 +181,18 @@ public:
       for (auto &yEdge : sortedYEdgeList) {
         int currentY = yEdge[0];
         if (INT_MAX != lastBenchY && currentY != lastBenchY) {
-          /*
-          Note that we're computing "activeBottomLengthSum" regardless of "yEdge[2], yEdge[3]", and it's only meaningful to update "activeBottomLengthSum" when "currentY != lastBenchY".
-          */
-          int activeBottomLengthSum = 0;
-          RangeSum(&root, 0, sortedDedupedXList.size(), &activeBottomLengthSum);
-          mergedArea += (currentY-lastBenchY)*activeBottomLengthSum;
+          if (0 == root.fullCoverAccDiff) {
+            // [TRICK] only check this condition when "lastBenchY" is updated 
+            // printf("Not fully covered, <currentY:%d, lastBenchY: %d>, returning false\n", currentY, lastBenchY);
+            return false;
+          }
+          mergedArea += (currentY-lastBenchY)*(maxR-minL);
         }
         RangeAdd(&root, yEdge[2], yEdge[3], {yEdge[0], yEdge[1]}, gotOverlay, 0);
-        if (gotOverlay) return false;
+        if (gotOverlay) {
+          // printf("Got overlay, returning false");
+          return false;
+        }
         lastBenchY = currentY;
       }
       int hullArea = abs(maxT - minB)*abs(maxR - minL);
