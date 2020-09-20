@@ -14,17 +14,6 @@ public:
   }
 };
 
-class RectangleCompareX {
-public:
-  bool operator() (Rectangle const &lhs, Rectangle const &rhs) const {
-    if (lhs.l != rhs.l) {
-      return (lhs.l < rhs.l);
-    } else {
-      return lhs.r < rhs.r;
-    }
-  }
-};
-
 class SegmentTreeNode {
 public:
   int fullCoverAccDiff = 0; // Accumulated diff of this node by "full cover" updates.  
