@@ -164,7 +164,7 @@ public:
         if (INT_MAX != lastY) {
           int activeBottomLengthSum = 0;
           /*
-          Note that We're computing "activeBottomLengthSum" regardless of "yEdge[2], yEdge[3]".
+          Note that we're computing "activeBottomLengthSum" regardless of "yEdge[2], yEdge[3]".
           */
           RangeSum(root, 0, sortedDedupedXList.size(), &activeBottomLengthSum);
           mergedArea += (ULL)(currentY-lastY)*(ULL)activeBottomLengthSum;
