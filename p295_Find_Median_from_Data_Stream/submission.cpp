@@ -1,3 +1,8 @@
+/*
+test case#1
+["MedianFinder","addNum","addNum","addNum","addNum","addNum","addNum","addNum","addNum","findMedian"]
+[[],[5],[5],[8],[1],[4],[7],[1],[3],[]]
+*/
 class MedianFinder {
 public:
     map<int, int> groupCounter;
@@ -12,12 +17,13 @@ public:
     
     void addNum(int num) {
         map<int, int>::iterator it = groupCounter.find(num);
+        int prevGroupCounterSize = groupCounter.size();
         if (it == groupCounter.end()) {
             groupCounter[num] = 1;
         } else {
             groupCounter[num] += 1;
         }
-        if (1 == groupCounter.size()) {
+        if (0 == prevGroupCounterSize && 1 == groupCounter.size()) {
             medianVal = num;
             medianOffsetInGroup = 0;
         } else {
@@ -31,7 +37,7 @@ public:
                     *
                     * 2  6  6  10
                     *       ^
-                    * which is made use of in "findMedian" to calculate the outcome when (0 == totalCount%2).
+                    * which is made of in "findMedian" to calculate the outcome when (0 == totalCount%2).
                     * Another example for this branch case should be 
                     * 2  6  6  10  11
                     *       ^ 
@@ -90,7 +96,7 @@ public:
                     * , adding "3" should result in
                     * 2  3  6  6  6  10
                     *          ^
-                    * which is made use of in "findMedian" to calculate the outcome when (0 == totalCount%2).
+                    * which is made of in "findMedian" to calculate the outcome when (0 == totalCount%2).
                     */
                 }
             }
