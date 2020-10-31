@@ -1,8 +1,12 @@
-#include <stdio.h>
-#include <string>
-#include <vector>
-using namespace std;
+/*
+test case#1
+"aaa"
+"aabab"
 
+test case#2
+"aaaaa"
+"bba"
+*/
 class Solution {
   public:
     void buildPatternKmpWidth(string& inPattern, vector<int>& outPatternPrefixWidth) {
@@ -11,7 +15,10 @@ class Solution {
         return;
       }
       outPatternPrefixWidth.assign(patternLength, 0);
+      vector<bool> isRepeatingSameCharacter(patternLength, false); // If (outPatternPrefixWidth[i] > 0), indicates whether or not the associated prefix is composed of RepeatingSameCharacter. 
+
       outPatternPrefixWidth[0] = 0;
+      
       for (int i = 1; i < patternLength; ++i) {
         int candidatePrefixWidth = outPatternPrefixWidth[i-1];
         /*
@@ -20,14 +27,20 @@ class Solution {
         * pattern3    = "a a a b a a a a a a a c"
         * prefixWidth =  0 1 2 0 1 2 3 3 3 3 3 0 
         * ```
-        */ 
-        while (candidatePrefixWidth >= 0) {
-          if (inPattern[i] == inPattern[candidatePrefixWidth]) {
-            outPatternPrefixWidth[i] = candidatePrefixWidth + 1;
-            break;
+        */
+        if (inPattern[i] == inPattern[candidatePrefixWidth]) {
+          outPatternPrefixWidth[i] = candidatePrefixWidth + 1;
+          if (1 == outPatternPrefixWidth[i]) {
+            isRepeatingSameCharacter[i] = true;
           } else {
-            --candidatePrefixWidth; 
+            isRepeatingSameCharacter[i] = (isRepeatingSameCharacter[i-1] && (inPattern[i] == inPattern[i-1]));
           }
+        } else {
+          // inPattern[i] != inPattern[candidatePrefixWidth]
+          if (false == isRepeatingSameCharacter[i-1]) continue;
+          if (inPattern[i] != inPattern[i-1]) continue;
+          isRepeatingSameCharacter[i] = true;
+          outPatternPrefixWidth[i] = outPatternPrefixWidth[i-1];
         }
       } 
     }
@@ -82,4 +95,3 @@ class Solution {
       return -1;
     }
 };
-
