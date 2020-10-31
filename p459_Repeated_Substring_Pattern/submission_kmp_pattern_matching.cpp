@@ -1,18 +1,19 @@
 /*
 test case#1
-"aaa"
-"aabab"
+"aabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaa"
 
 test case#2
-"aaaaa"
-"bba"
+"aabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaac"
 
 test case#3
-"cuaabaababaabaaa"
+"aabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaa"
+
+test case#4
 "abaababaab"
 */
+
 class Solution {
-  public:
+public:
     void buildPatternKmpWidth(string& inPattern, vector<int>& outPatternPrefixWidth) {
       int patternLength = inPattern.length();
       if (0 == patternLength) {
@@ -60,54 +61,20 @@ class Solution {
         }
       }
     }
-
-    int strStr(string s, string pattern) {
+    
+    bool repeatedSubstringPattern(string pattern) {
       int patternLength = pattern.length();
-      if (0 == patternLength) {
-        return 0;
-      }
-      int sLen = s.length();
-      if (sLen < patternLength) {
-        return -1;
-      }
-      vector<int> patternPrefixWidth;
+      vector<int> patternPrefixWidth(patternLength, 0);
       buildPatternKmpWidth(pattern, patternPrefixWidth);
-      
       // printf("patternPrefixWidth[]\n");
       // for (int i = 0; i < patternLength; ++i) {
       //   printf("%d ", patternPrefixWidth[i]);
       // }
       // printf("\n");
-          
-      int offsetInPattern = 0;
-      int offsetInS = 0;
-      while (offsetInS < sLen) {
-        // printf("start matching aligned at s[%d] == %c, pattern[%d] == %c.\n", offsetInS + offsetInPattern, s[offsetInS + offsetInPattern], offsetInPattern, pattern[offsetInPattern]);
-        while (offsetInPattern < patternLength && s[offsetInS + offsetInPattern] == pattern[offsetInPattern]) {
-          // printf("s[%d] == pattern[%d], moving on\n", offsetInS + offsetInPattern, offsetInPattern);
-
-          ++offsetInPattern;
-        }
-        if (offsetInPattern >= patternLength) {
-          // matched
-          return offsetInS;
-        }
-
-        int magicOffset;
-        if (0 >= offsetInPattern) {
-          magicOffset = 1;
-          offsetInS += magicOffset;
-          offsetInPattern = 0; // unchanged
-        } else {
-          magicOffset = (offsetInPattern - patternPrefixWidth[offsetInPattern - 1]);
-          offsetInS += magicOffset;
-          offsetInPattern = patternPrefixWidth[offsetInPattern - 1];
-        }
-
-        // printf("resetting magicOffset == %d, offsetInPattern == %d, offsetInS == %d.\n", magicOffset, offsetInPattern, offsetInS);
-      }
-
-      // not matched till the end of "s"
-      return -1;
+      if (patternPrefixWidth.back() == 0) return false;
+      int candidatePrefixLength = patternLength - patternPrefixWidth.back();
+      return (patternPrefixWidth.back()%candidatePrefixLength == 0
+             &&
+             patternLength%candidatePrefixLength == 0);
     }
 };
