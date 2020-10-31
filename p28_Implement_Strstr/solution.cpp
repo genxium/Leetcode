@@ -83,18 +83,3 @@ class Solution {
     }
 };
 
-int main() {
-  string haystack = "aabaaabaaac";
-  string needle = "aabaaac";
-
-  // string haystack = "abcxxxabcxxxabcyyy";
-  // string needle = "abcxxxabcyyy";
-
-  // string haystack = "hello";
-  // string needle = "ll";
-
-  Solution s;
-  int res = s.strStr(haystack, needle);
-  printf("Found %s in %s at %d of the latter.\n", needle.c_str(), haystack.c_str(), res);
-  return 0;
-}
