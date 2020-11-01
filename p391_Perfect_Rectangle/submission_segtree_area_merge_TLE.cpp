@@ -53,7 +53,7 @@ public:
     int indentSpaceCount = (level << 1);
     //printf("%*sRangeAdd, [newSegLeftIndexClosed:%d, newSegRightIndexOpen:%d), (y: %d, flag:%s)\n", indentSpaceCount, "", newSegLeftIndexClosed, newSegRightIndexOpen, unifiedYEdge.first, unifiedYEdge.second == TOP ? "TOP" : "BOTTOM");
 
-    if (newSegLeftIndexClosed <= currentRoot->leftIndexClosed && newSegRightIndexOpen >=  currentRoot->rightIndexOpen) {
+    if (newSegLeftIndexClosed <= currentRoot->leftIndexClosed && newSegRightIndexOpen >= currentRoot->rightIndexOpen) {
       // Proactively stops at "full cover" update.
       if (unifiedYEdge.second == TOP) {
         currentRoot->fullCoverAccDiff += -1;
