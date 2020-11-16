@@ -1,11 +1,6 @@
 /*
 Note that in this problem, "stoneValue" cannot be re-ordered.
 
-The solution here is very similar to 
-- that of https://github.com/genxium/Leetcode/tree/master/p312_Burst_Balloons, and
-- that of https://github.com/genxium/Leetcode/tree/master/p877_Stone_Game, and
-- that of https://github.com/genxium/Leetcode/blob/master/p1547_Minimum_Cost_to_Cut_a_Stick/submission_dp_iterative.cpp.
-
 "dp[l][r] == x" means that by using "stoneValue[l, ..., r]" Alice can obtain at most "x" points
 
 dp[l][l] = 0 for each "l"
