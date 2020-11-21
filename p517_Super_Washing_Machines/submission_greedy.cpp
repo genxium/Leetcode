@@ -178,11 +178,16 @@ public:
     In the case like "test case#2"
     
     2_________0____0___________________________________________________________2
-       x        y                                              z
+       a        b                                              c
 
-    we should avoid any 2 transmissions with different directions overlapping.
+    , we should avoid any 2 transmissions with different directions overlapping.
     
-    In the case like "test case#3", we should be greedy to make a transmission from/to the nearest possible supply/demand. To be quantitative, there're 2 different "transmission schemes" to fulfill "test case#3"
+    In fact, we should avoid overlapping regardless of the direction of transmission. In the case like "test case#3"
+
+    6_________0____4____________________________0______________________________0
+       a        b               c                              d                               
+
+    , we should be greedy to make a transmission from/to the nearest possible supply/demand. To be quantitative, there're 2 different "transmission schemes" to fulfill demands
     - schm#1
       0 -> 1: 2 dresses
       0 -> 3: 2 dresses
