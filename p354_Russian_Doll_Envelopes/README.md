@@ -1,4 +1,3 @@
-
 At first sight this is a "topological sorting" problem, however the input doesn't immediately conform to a graph and to build such graph it'll take O(n^2) time.
 
 Without loss of generality, I choose to maintain a "sortedCache" with "decreasing width". Moreover, let's say that if "A={w1, h1}" and "B={w2, h2}" suffice that "w1 > w2 && h1 < h2", then "A and B forms a tie".
@@ -18,3 +17,6 @@ the resultant "sortedCache" will be "[{11, 14}, {6, 1}]" of length 2, where the 
 [{16, 14}, {13, 2}, {6, 1}]
 ```
 of length 3, yet **everything will become correct if we sort "envelopes" by descending "width" & ascending "height"**! Further information is given in the source code, note that **"sortedCache" only tells the correct length at the end of traversal but not necessarily the finally contained elements**.
+
+# Similar problems
+- [p1626_Best_Team_With_No_Conflicts](https://github.com/genxium/Leetcode/tree/master/p1626_Best_Team_With_No_Conflicts), more mathematical generalizations there
