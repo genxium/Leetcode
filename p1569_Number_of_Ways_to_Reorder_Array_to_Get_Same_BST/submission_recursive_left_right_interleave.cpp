@@ -17,7 +17,7 @@ ULL combination(int n, int k) {
 }
 
 int waysToInterleave(int x, int y) {
-  // the number of ways to interleave a[0, ..., x-1] and b[0, ..., y-1] is equivalent ot the number of ways to pick x slots from x+y slots
+  // the number of ways to interleave a[0, ..., x-1] and b[0, ..., y-1] is equivalent to the number of ways to pick x slots from x+y slots
   return combination(x+y, x);
 }
 
