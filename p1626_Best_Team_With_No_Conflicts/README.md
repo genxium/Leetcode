@@ -1,5 +1,6 @@
 # Similar problems
 - [p354_Russian_Doll_Envelopes](https://github.com/genxium/Leetcode/tree/master/p354_Russian_Doll_Envelopes)
+- [p1691_Maximum_Height_by_Stacking_Cuboids](https://github.com/genxium/Leetcode/tree/master/p1691_Maximum_Height_by_Stacking_Cuboids)
 
 This problem is a generalization of [p354_Russian_Doll_Envelopes](https://github.com/genxium/Leetcode/tree/master/p354_Russian_Doll_Envelopes) with weights and a looser `isCompatible(...)` condition, thus more difficult to come up with a binary-search approach.
 

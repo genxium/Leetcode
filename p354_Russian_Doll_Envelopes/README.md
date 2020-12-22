@@ -20,3 +20,4 @@ of length 3, yet **everything will become correct if we sort "envelopes" by desc
 
 # Similar problems
 - [p1626_Best_Team_With_No_Conflicts](https://github.com/genxium/Leetcode/tree/master/p1626_Best_Team_With_No_Conflicts), more mathematical generalizations there
+- [p1691_Maximum_Height_by_Stacking_Cuboids](https://github.com/genxium/Leetcode/tree/master/p1691_Maximum_Height_by_Stacking_Cuboids)
