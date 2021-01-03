@@ -55,13 +55,15 @@ public:
     }
 
     int solve(int n) {
-        vector<int> dp(INTEGER_BIT_LENGTH, 0); // "dp[i] == x” means that "count of integers of bit-length EXACTLY i and without consecutive 1s" is "x", note that the leading bit can be '0'.
+        vector<int> dp(INTEGER_BIT_LENGTH, 0); // "dp[i] == x” means that "count of strings of bit-length EXACTLY `i` and without consecutive `1`s" is "x", note that the leading bit can be '0'.
 
         dp[0] = 1;
-        dp[1] = 2;
+        dp[1] = 2; // "0" and "1"
 
         for (int i = 2; i < INTEGER_BIT_LENGTH; ++i) {
-            dp[i] = dp[i-1] + dp[i-2];
+            dp[i] = 
+                    dp[i-1]  // appends "0" 
+                  + dp[i-2]; // appends "01"
         }
 
         int i = (int)(log2(n)), ans = 0, prevBit = 0;
@@ -69,6 +71,17 @@ public:
             if ((n & (1 << i)) != 0) {
                 ans += dp[i];
                 if (prevBit == 1) {
+                    /*
+                    For n == "11xxxxxxxxxxxx"
+                                ------------
+                                  i bits
+
+                    , we only count 0xxxxxxxxxxxxx and 10xxxxxxxxxxxx, then stop moving on because the later 11xxxxxxxxxxxx     
+                                     -------------       ------------                                          ------------
+                                       (i+1) bits          i bits                                                i bits
+                                       
+                    is definitely not a valid candidate (including n itself, thus ans--).
+                    */
                     ans--;
                     break;
                 }
