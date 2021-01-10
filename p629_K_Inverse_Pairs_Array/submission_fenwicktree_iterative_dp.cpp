@@ -1,4 +1,4 @@
-bool const debug = true;
+bool const debug = false;
 int const MAXN = 1000, MAXK = 1000;
 int const MOD = 1000000007;
 
@@ -32,7 +32,7 @@ struct FenwickTree {
 /*
 int dp[MAXN+1][MAXK+1]; // "dp[i][c] == x" means that using [1, ..., i], there're "x" arrays of "c" inverse-pairs
 
-dp[i][c] = sum{dp[i-1][c-j] | 0 <= j < i-1}, for each permutation of [1, ..., i-1] of "t" inverse-pairs, adding number "i" to the "i" slots can make new arrays of "t+i-1", "t+i-2", ..., "t" inverse-pairs, respectively
+dp[i][c] = sum{dp[i-1][c-j] | 0 <= j < i}, for each permutation of [1, ..., i-1] of "t" inverse-pairs, adding number "i" to the "i" slots can make new arrays of "t+i-1", "t+i-2", ..., "t" inverse-pairs, respectively
 
  1 2 ... i-2 i-1
 ^ ^ ^   ^   ^   ^
@@ -89,7 +89,6 @@ public:
     }
     
     int solveFenwickTree(int n, int k) {
-        
         FenwickTree ftIns(k+1);
         
         // init
@@ -112,12 +111,39 @@ public:
         return ftIns.sum(k, k);
     }
     
+    int solve(int n, int k) {
+        /*
+        "dp[i][c] = sum{dp[i-1][c-j] | 0 <= j < i}" implies that "dp[i][c] = dp[i][c-1] + dp[i-1][c] - (c-i >= 0 ? dp[i-1][c-i] : 0)", because "dp[i][c-1] = sum{dp[i-1][c-1-j] | 0 <= j < i}" which might contain an extruding "dp[i-1][c-i]" depending on whether "c-i >= 0"
+        
+        The optimizing idea is very similar to the iterative approach to https://github.com/genxium/Leetcode/tree/master/p10_Regular_Expression_Matching.
+        */
+        int dp[MAXN+1][MAXK+1];
+
+        // init 
+        memset(dp, 0, sizeof dp);
+        dp[2][0] = 1; // as "dp[2][0] = 1", for [1, 2]
+        dp[2][1] = 1; // as "dp[2][1] = 1", for [2, 1]
+        
+        // loop 
+        for (int i = 3; i <= n; ++i) {
+            for (int c = 0; c <= k; ++c) {
+                if (0 == c) dp[i][c] = 1; 
+                else {
+                    int tmp1 = (dp[i][c-1] - (c-i >= 0 ? dp[i-1][c-i] : 0) + MOD)%MOD;
+                    dp[i][c] = (dp[i-1][c] + tmp1)%MOD;
+                }
+            }
+        }
+        
+        return dp[n][k];
+    }
+    
     int kInversePairs(int n, int k) {
         if (1 == n) {
             if (0 == k) return 1;
             else return 0;
         }
 
-        return solveFenwickTree(n, k);
+        return solve(n, k);
     }
 };
