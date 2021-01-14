@@ -2,7 +2,7 @@
 #define MAXN 10000
 int dp[MAXN]; 
 /*
-"dp[i] == x" means that selling exactly on i-th day can reach max profix "x"
+"dp[i] == x" means that selling exactly on i-th day can reach max profit "x"
 
 dp[i] = prices[i]-min(0 <= t <= i-1) or max{dp[j] + prices[i]-min(t) | j+2 <= i-1, j+2 <= t <= i-1}
 */

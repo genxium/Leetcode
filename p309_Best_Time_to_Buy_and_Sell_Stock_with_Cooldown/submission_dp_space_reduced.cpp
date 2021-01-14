@@ -2,8 +2,8 @@
 #define minh(a, b) (a < b ? a : b)
 int dpSell, dpSellYesterday, dpSellTheDayBeforeYesterday, dpBuy; 
 /*
-- "dpSell[i] == x" means that selling on or before i-th day can reach max profix "x"
-- "dpBuy[i] == y" means that buying on or before i-th day can reach max profix "y", where the last implied action must be buying
+- "dpSell[i] == x" means that selling on or before i-th day can reach max profit "x"
+- "dpBuy[i] == y" means that buying on or before i-th day can reach max profit "y", where the last implied action must be buying
 
 dpSell[i] = max{dpSell[i-1], dpBuy[i-1]+prices[i]}
 dpBuy[i] = max{dpBuy[i-1], -prices[i]+dpSell[i-2]}
