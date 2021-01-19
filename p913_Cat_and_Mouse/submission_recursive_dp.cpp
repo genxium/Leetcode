@@ -10,7 +10,7 @@ A "StateTuple" is {mousePos, catPos, mouseOrCatTurn}.
 int dp[MAXN][MAXN][2];
 int undeterminedNbCount[MAXN][MAXN][2]; // [WARNING] Refers to the "neighbour of StateTupleGraph" instead of the "OriginalGraph".
 bool openSet[MAXN][MAXN][2]; // a.k.a. "onStack[MAXN][MAXN][2]"
-bool closedSet[MAXN][MAXN][2]; // a.k.a. "onStack[MAXN][MAXN][2]"
+bool closedSet[MAXN][MAXN][2]; // a.k.a. "wasOnButNowOffStack[MAXN][MAXN][2]"
 
 /*
 test cases
