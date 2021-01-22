@@ -19,5 +19,6 @@ the resultant "sortedCache" will be "[{11, 14}, {6, 1}]" of length 2, where the 
 of length 3, yet **everything will become correct if we sort "envelopes" by descending "width" & ascending "height"**! Further information is given in the source code, note that **"sortedCache" only tells the correct length at the end of traversal but not necessarily the finally contained elements**.
 
 # Similar problems
+- [p646_Maximum_Length_of_Pair_Chain](https://github.com/genxium/Leetcode/tree/master/p646_Maximum_Length_of_Pair_Chain)
 - [p1626_Best_Team_With_No_Conflicts](https://github.com/genxium/Leetcode/tree/master/p1626_Best_Team_With_No_Conflicts), more mathematical generalizations there
 - [p1691_Maximum_Height_by_Stacking_Cuboids](https://github.com/genxium/Leetcode/tree/master/p1691_Maximum_Height_by_Stacking_Cuboids)
