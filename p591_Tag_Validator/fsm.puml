@@ -29,7 +29,8 @@ EXPECTING_TAG_NAME_MORE -left-> INVALID: '<'
 EXPECTING_TAG_EMPTY_MIXED --> INVALID: any of {'<', '>'}  
 EXPECTING_TAG_NAME_EMPTY -down-> INVALID: '>'  
 
-EXPECTING_TAG_END_NAME --> FINISHED: sequentially "{active_tag_name}>"  
+EXPECTING_TAG_END_NAME --> FINISHED: "stkActiveTags" is empty\nand\nsequentially "{active_tag_name}>"  
+EXPECTING_TAG_END_NAME --> EXPECTING_TAG_CONTENT: "stkActiveTags" not empty\nand\nsequentially "{active_tag_name}>"  
 FINISHED --> INVALID: any 
 
 
