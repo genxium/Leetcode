@@ -40,7 +40,6 @@ private:
       auto expander = openHeap.top(); openHeap.pop();
       string &u = expander.second;
       
-      //printf("checking expander (minGByFar: %d, u: %d)\n", minGByFar, u);
       closedSet.insert(u);
       if (0 == u.compare(end)) {
         return g[u];
