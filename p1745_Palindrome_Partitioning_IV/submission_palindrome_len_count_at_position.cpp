@@ -1,26 +1,22 @@
+bool const debug = false;
+int const MAXN = 2000;
+int const INVALID = -1;
+int cache[MAXN][4]; // -1: unknown, 0: impossible, 1: possible
+
 class Solution {
-  public:
-    int longestPalindromeFromBeginning(string &s) {
+public:
+    void evalPalindromeLenCount(string &s, vector< vector<int> > &palindromeLenCount) {
       int slen = s.length();
-      if (slen <= 1) return 1;
 
       // init
-      vector< vector<int> > palindromeLenCount; // "palindromeLenCount[i][j] == n" means that "the j-th palindrome ended at s[i] has length n" 
       palindromeLenCount.push_back({1}); // A single character itself is of course a palindrome.
 
-      int toRet = 1;
+      if (slen <= 1) return;
 
       // loop
       for (int i = 1; i < slen; ++i) {
         vector<int> currentPalindromeLenCount = {1}; // A single character itself is of course a palindrome.
         vector<int> prevPalindromeLenCount = palindromeLenCount[i - 1];
-        /*
-           Re-purpose "currentPalindromeLenCount[0]" to contain the length of the "repeating character palindrome ended at each s[i]", which must be a palindrome by itself.
-
-           With such "re-purposing", besides the palindromes of pattern "aaaa....aaaa"(all the same), the following iteration of "j" is only of O(log2(i)) time-complexity. 
-
-           Therefore I try to tackle the edge-case of "repeating character palindrome ended at each s[i]".
-         */
         for (int j = 0; j < prevPalindromeLenCount.size(); ++j) {
           int prevPalindromeLen = prevPalindromeLenCount[j]; // could be ODD or EVEN
           int leftIdxCandidateOfCurrentPalindrome = -1, newPalindromeLen = 0;
@@ -78,27 +74,59 @@ class Solution {
           if (0 == newPalindromeLen) {
             continue;
           }
-
-          if (0 == leftIdxCandidateOfCurrentPalindrome) {
-            if (newPalindromeLen > toRet) {
-              toRet = newPalindromeLen;
-            }
-          }
         }  
         palindromeLenCount.push_back(currentPalindromeLenCount);
       }
-
-      return toRet;
     }
 
-    string shortestPalindrome(string s) {
-      int toPrependStart = longestPalindromeFromBeginning(s);
-      string prepend = "";
-      for (int i = toPrependStart; i < s.length(); ++i) {
-        prepend.push_back(s[i]);
-      }
-      reverse(prepend.begin(), prepend.end());
-      string ans = prepend + s;
-      return ans;
+    int dfs(int i, int c, vector< vector<int> > &palindromeLenCount, int level) {
+        int indent = 2*level;
+        // Can we partition s[0, ..., i] to c palindromic substrings?
+        if (debug) {
+            printf("%*si:%d, c:%d\n", indent, "", i, c);   
+        }
+        
+        if (i == -1) {
+            return (c == 0 ? true : false);
+        }
+        
+        if (c == 0) {
+            if (i == -1) return true;
+            return cache[i][c] = false;
+        }
+        
+        if (INVALID != cache[i][c]) return cache[i][c];
+        
+        int result = false;
+        for (int x = 1; x <= palindromeLenCount[i][0]; ++x) {
+            int t = i-x+1; // s[t, i] is a palindrome
+            int cand = dfs(t-1, c-1, palindromeLenCount, level+1);
+            if (cand) {
+                result = true;
+                break;
+            }
+        }
+        
+        if (false == result) {
+            for (int j = 1; j < palindromeLenCount[i].size(); ++j) {
+                int x = palindromeLenCount[i][j];
+                int t = i-x+1; // s[t, i] is a palindrome
+                int cand = dfs(t-1, c-1, palindromeLenCount, level+1);
+                if (cand) {
+                    result = true;
+                    break;
+                }
+            }         
+        }
+
+        return cache[i][c] = result;
+    }
+    
+    bool checkPartitioning(string s) {
+        vector< vector<int> > palindromeLenCount; // "palindromeLenCount[i][j] == x" means that "the j-th palindrome ended at s[i] has length x" 
+        evalPalindromeLenCount(s, palindromeLenCount);
+        memset(cache, INVALID, sizeof cache);
+        
+        return dfs(s.length()-1, 3, palindromeLenCount, 0);
     }
 };
