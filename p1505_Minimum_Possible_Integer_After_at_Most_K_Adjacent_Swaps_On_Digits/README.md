@@ -6,3 +6,6 @@ Let's first show why a "greedy approach(i.e. seeking the min in range [0, remain
 Therefore when the state is `O = [1, 2, 94, 95, 96, 97, 98, 99, 42, 3, 11], k = 6`, the smallest we can obtain by swapping adjacent nums will be `A`.
 
 Next, we need a method to "findSmallest(vector<int> &arr, int startOffset, int k)". The "SegmentTree" solution here might look a bit unfamiliar to some, please read [this note](https://www.yinxiang.com/everhub/note/b904af18-03fd-4dbc-a3d2-67a0daa1518e) and checkout https://github.com/genxium/Leetcode/tree/master/p307_Range_Sum_Query_Mutable beforehand to get more comfortable about it.
+
+Similar problems
+- [p699_Falling_Squares](https://github.com/genxium/Leetcode/tree/master/p699_Falling_Squares) 
