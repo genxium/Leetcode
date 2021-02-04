@@ -37,43 +37,46 @@ public:
         }
         
         int ans = 0;
+        /*
+         Note that "intervals" are
+
+         - all parallel to y-axis
+         - sorted primarily by their "starting-y" and secondly by "ending-y"
+
+         , which means that upon visiting any "intervals[k]" in the loop below, there're at most "k" entries in "sortedEnds"
+         */
         map<int, int> sortedEnds;
         for (auto &interval : intervals) {
-            int endLower = interval.first;
-            int endUpper = interval.second;
+            int currentStartingY = interval.first;
+            int currentEndingY = interval.second;
             
-            int cand = (endUpper-endLower); // only 1 row
+            int cand = (currentEndingY-currentStartingY); // only 1 row
             ans = max(cand, ans);
             
-            auto endLowerIt = sortedEnds.upper_bound(endLower);
-            auto endUpperIt = sortedEnds.end();
+            auto prevEndingLowerIt = sortedEnds.upper_bound(currentStartingY);
             
-            int totalSortedEnds = 0;
-            for (auto it = endLowerIt; it != endUpperIt; ++it) {
-                totalSortedEnds += it->second;
+            int effPrevEndingsCount = 0;
+            for (auto it = prevEndingLowerIt; it != sortedEnds.end(); ++it) {
+                effPrevEndingsCount += it->second;
             }
             
-            if (debug && endLowerIt != sortedEnds.end()) {
-                printf("for current [%d,%d), endLowerIt is {endValue:%d, count:%d}, totalSortedEnds is %d\n", interval.first, interval.second, endLowerIt->first, endLowerIt->second, totalSortedEnds);
+            if (debug && prevEndingLowerIt != sortedEnds.end()) {
+                printf("for current [%d,%d), prevEndingLowerIt is {endValue:%d, count:%d}, effPrevEndingsCount is %d\n", interval.first, interval.second, prevEndingLowerIt->first, prevEndingLowerIt->second, effPrevEndingsCount);
             }
             
-            for (auto it = endLowerIt; it != endUpperIt; ++it) {
-                cand = (min(it->first, endUpper) - endLower)*(totalSortedEnds+1); // height*width
+            for (auto it = prevEndingLowerIt; it != sortedEnds.end(); ++it) {
+                cand = (min(it->first, currentEndingY) - currentStartingY)*(effPrevEndingsCount+1); // height*width
                 if (cand > ans) {
                     ans = cand;
                     if (debug) {
-                        printf("for current [%d,%d), it {endValue:%d, count:%d} & totalSortedEnds:%d, update ans to %d\n", interval.first, interval.second, it->first, it->second, totalSortedEnds, ans);
+                        printf("for current [%d,%d), it {endValue:%d, count:%d} & effPrevEndingsCount:%d, update ans to %d\n", interval.first, interval.second, it->first, it->second, effPrevEndingsCount, ans);
                     }
                 }
-                if (it->first >= endUpper) break; // no need to move on, this is the maximum
-                totalSortedEnds -= it->second;
+                if (it->first >= currentEndingY) break; // no need to move on, this is the maximum
+                effPrevEndingsCount -= it->second;
             }
                 
-            if (sortedEnds.find(endUpper) == sortedEnds.end()) {
-                sortedEnds[endUpper] = 1;
-            } else {
-                ++sortedEnds[endUpper];               
-            }
+            ++sortedEnds[currentEndingY];               
         }
         
         return ans;

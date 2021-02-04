@@ -3,7 +3,7 @@ private:
     bool enough(int x, int m, int n, int k) {
         int count = 0;
         for (int i = 1; i <= m; ++i) {
-            // For each row consisting of {1*i, 2*i, ..., n*i}, x can be larger than min(k, n) elements
+            // For each row consisting of {1*i, 2*i, ..., n*i}, x can be larger than min(x/i, n) elements
             count += min(x/i, n);
         }
         return count >= k;
