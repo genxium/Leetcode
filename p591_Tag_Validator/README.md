@@ -5,3 +5,6 @@ In case some extracted information, e.g. a "localMap/localCounter", from a child
 - pop the current "localMap/localCounter" upon transition `EXPECTING_TAG_END_NAME -> EXPECTING_TAG_CONTENT` and update the "localMap/localCounter of parent".
 
 Such pushing & popping can be as well implemented iteratively using a similar `stack<pair<string, unordered_map<..., ...>>> stkActiveTags`, see [p636_Exclusive_Time_of_Functions](https://github.com/genxium/Leetcode/tree/master/p636_Exclusive_Time_of_Functions) for details. 
+
+Similar problems
+- [p722_Remove_Comments](https://github.com/genxium/Leetcode/tree/master/p722_Remove_Comments)

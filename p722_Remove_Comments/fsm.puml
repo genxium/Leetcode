@@ -1,0 +1,14 @@
+@startuml
+state "IDLE" as IDLE 
+IDLE -> CMT_ST_1: '/'
+CMT_ST_1 -down-> IN_LINE_CMT: '/'
+IN_LINE_CMT -> IN_LINE_CMT: any except '\\n'
+IN_LINE_CMT -> IDLE: '\n'
+CMT_ST_1 -down-> IN_BLOCK_CMT: '*'
+IN_BLOCK_CMT -down-> BLOCK_CMT_ED_1: '*'
+IN_BLOCK_CMT -> IN_BLOCK_CMT: any except '*'
+BLOCK_CMT_ED_1 -> BLOCK_CMT_ED_1: '*'
+BLOCK_CMT_ED_1 -> IN_BLOCK_CMT: any except '/' or '*'
+BLOCK_CMT_ED_1 -> IDLE: '/'
+CMT_ST_1 -> IDLE: any except '/' or '*'
+@enduml
