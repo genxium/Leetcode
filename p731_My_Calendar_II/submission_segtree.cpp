@@ -102,23 +102,47 @@ public:
     }
 };
 
-class MyCalendarThree {
+/*
+test cases
+["MyCalendarTwo","book","book","book","book","book","book"]
+[[],[10,20],[50,60],[10,40],[5,15],[5,10],[25,55]]
+["MyCalendarThree","book","book","book"]
+[[],[27,36],[27,36],[23,28]]
+["MyCalendarThree","book","book","book","book","book","book","book","book","book"]
+[[],[47,50],[1,10],[27,36],[40,47],[20,27],[15,23],[10,18],[27,36],[23,28]]
+["MyCalendarTwo","book","book","book","book","book","book","book","book","book","book","book","book"]
+[[],[47,50],[1,10],[27,36],[40,47],[20,27],[15,23],[10,18],[27,36],[17,25],[8,17],[24,33],[23,28]]
+["MyCalendarTwo","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book","book"]
+[[],[47,50],[1,10],[27,36],[40,47],[20,27],[15,23],[10,18],[27,36],[17,25],[8,17],[24,33],[23,28],[21,27],[47,50],[14,21],[26,32],[16,21],[2,7],[24,33],[6,13],[44,50],[33,39],[30,36],[6,15],[21,27],[49,50],[38,45],[4,12],[46,50],[13,21]]
+["MyCalendarTwo","book","book","book","book"]
+[[],[28,46],[9,21],[21,39],[37,48]]
+["MyCalendarTwo","book","book","book","book","book","book","book","book","book","book"]
+[[],[28,46],[9,21],[21,39],[37,48],[38,50],[22,39],[45,50],[1,12],[40,50],[31,44]]
+*/
+class MyCalendarTwo {
 private:
     SegTreeNode *root = NULL;
 public:
-    MyCalendarThree() {
+    MyCalendarTwo() {
         root = new SegTreeNode(0, MAXPOS);
     }
     
-    int book(int start, int end) {
+    bool book(int start, int end) {
+        if (debug) {
+            printf("Checking k for [start:%d, end:%d)\n", start, end);
+        }
+        int k = root->RangeMaxCoverCount(start, end, 0);
+        if (debug) {
+            printf("k for [start:%d, end:%d) is %d\n", start, end, k);
+        }
+        if (2 == k) return false;
         root->RangeAdd(start, end, 1, 0);
-        int k = root->RangeMaxCoverCount(0, MAXPOS, 0);
-        return k;
+        return true;
     }
 };
 
 /**
- * Your MyCalendarThree object will be instantiated and called as such:
- * MyCalendarThree* obj = new MyCalendarThree();
- * int param_1 = obj->book(start,end);
+ * Your MyCalendarTwo object will be instantiated and called as such:
+ * MyCalendarTwo* obj = new MyCalendarTwo();
+ * bool param_1 = obj->book(start,end);
  */
