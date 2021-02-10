@@ -1,0 +1,2 @@
+Similar problems
+- [p395_Longest_Substring_with_At_Least_K_Repeating_Characters](https://github.com/genxium/Leetcode/tree/master/p395_Longest_Substring_with_At_Least_K_Repeating_Characters) 
