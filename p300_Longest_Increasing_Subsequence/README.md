@@ -4,4 +4,4 @@ For higher dimensional generalization, see
 - [p1691_Maximum_Height_by_Stacking_Cuboids](https://github.com/genxium/Leetcode/tree/master/p1691_Maximum_Height_by_Stacking_Cuboids).
 
 Similar problems
-- [p673_Number_of_Longest_Increasing_Subsequence](https://github.com/genxium/Leetcode/tree/master/p673_Number_of_Longest_Increasing_Subsequence),
+- [p673_Number_of_Longest_Increasing_Subsequence](https://github.com/genxium/Leetcode/tree/master/p673_Number_of_Longest_Increasing_Subsequence), it shows an alternative approach to find "LongestIncreasingSubsequence" by "SegmentTree".

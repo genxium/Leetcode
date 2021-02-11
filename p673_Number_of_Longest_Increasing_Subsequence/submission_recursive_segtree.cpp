@@ -8,6 +8,9 @@ test cases
 [1,3,5,4,7]
 [2,2,2,2,2]
 [3,2,1]
+[1,2,4,3,4]
+[1,2,3,2,3]
+[1,2,3,2,3,1,2,3,2,3]
 */
 PII aggregate(PII lhs, PII rhs) {
     if (lhs.first == rhs.first) {
@@ -55,52 +58,47 @@ public:
     }
 
     void RangeAdd(int newSegLeftIndexClosed, int newSegRightIndexOpen, PII newLisResult, int level) {
-        auto root = this;
         // Reject invalid "[newSegLeftIndexClosed, newSegRightIndexOpen)"s. 
         if (newSegLeftIndexClosed >= newSegRightIndexOpen) return;
-        if (newSegLeftIndexClosed >= root->rightIndexOpen) return;
-        if (newSegRightIndexOpen <= root->leftIndexClosed) return;
-
-        // Snap valid "[newSegLeftIndexClosed, newSegRightIndexOpen)"s.
-        newSegLeftIndexClosed = max(newSegLeftIndexClosed, root->leftIndexClosed);
-        newSegRightIndexOpen = min(newSegRightIndexOpen, root->rightIndexOpen);
+        if (newSegLeftIndexClosed >= rightIndexOpen) return;
+        if (newSegRightIndexOpen <= leftIndexClosed) return;
 
         int indentSpaceCount = (level << 1);
         if (debug) printf("%*sRangeAdd, [newSegLeftIndexClosed:%d, newSegRightIndexOpen:%d), (newLisLength: %d, newLisCount: %d)\n", indentSpaceCount, "", newSegLeftIndexClosed, newSegRightIndexOpen, newLisResult.first, newLisResult.second);
 
-        if (newSegLeftIndexClosed <= root->leftIndexClosed && newSegRightIndexOpen >= root->rightIndexOpen) {
-            root->lisResult = aggregate(newLisResult, root->lisResult);
+        if (newSegLeftIndexClosed <= leftIndexClosed && rightIndexOpen <= newSegRightIndexOpen) {
+            lisResult = aggregate(newLisResult, lisResult);
             if (debug) printf("%*sRangeAdd-END#1, updated (newLisLength: %d, newLisCount: %d)\n", indentSpaceCount, "", lisResult.first, lisResult.second);
             return;
         }
 
-        root->getOrCreateLChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, newLisResult, level+1);
-        root->getOrCreateRChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, newLisResult, level+1);        
-        root->lisResult = aggregate(root->lChild->lisResult, root->rChild->lisResult);
+        getOrCreateLChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, newLisResult, level+1);
+        getOrCreateRChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, newLisResult, level+1);        
+        lisResult = aggregate(lChild->lisResult, rChild->lisResult);
         if (debug) printf("%*sRangeAdd-END#2, updated (newLisLength: %d, newLisCount: %d)\n", indentSpaceCount, "", lisResult.first, lisResult.second);
     }
 
     PII RangeMax(int targetLeftIndexClosed, int targetRightIndexOpen) {
-        auto root = this;
         PII result = INIT_LIS_RESULT;
         
         // Reject invalid "[targetLeftIndexClosed, targetRightIndexOpen)"s. 
         if (targetLeftIndexClosed >= targetRightIndexOpen) return result;
-        if (targetLeftIndexClosed >= root->rightIndexOpen) return result;
-        if (targetRightIndexOpen <= root->leftIndexClosed) return result;
+        if (targetLeftIndexClosed >= rightIndexOpen) return result;
+        if (targetRightIndexOpen <= leftIndexClosed) return result;
 
-        // Snap valid "[targetLeftIndexClosed, targetRightIndexOpen)"s.
-        targetLeftIndexClosed = max(targetLeftIndexClosed, root->leftIndexClosed);
-        targetRightIndexOpen = min(targetRightIndexOpen, root->rightIndexOpen);
-
-        if (targetLeftIndexClosed <= root->leftIndexClosed && targetRightIndexOpen >= root->rightIndexOpen) {
-            return root->lisResult;
+        if (targetLeftIndexClosed <= leftIndexClosed && rightIndexOpen <= targetRightIndexOpen) {
+            return lisResult;
         }
                 
-        if (root->lChild) result = aggregate(result, root->lChild->RangeMax(targetLeftIndexClosed, targetRightIndexOpen));
-        if (root->rChild) result = aggregate(result, root->rChild->RangeMax(targetLeftIndexClosed, targetRightIndexOpen));
+        if (lChild) result = aggregate(result, lChild->RangeMax(targetLeftIndexClosed, targetRightIndexOpen));
+        if (rChild) result = aggregate(result, rChild->RangeMax(targetLeftIndexClosed, targetRightIndexOpen));
         
-        return root->lisResult = result;
+        /*
+        [WARNING]
+        
+        By now the "result" is for interval [targetLeftIndexClosed, targetRightIndexOpen), which DOESN'T FULLY COVER [this->leftIndexClosed, this->rightIndexOpen), hence DON'T UPDATE "this->lisResult" by "result"!
+        */
+        return result;
     }
 };
 
@@ -117,6 +115,11 @@ public:
         
         for (int i = 0; i < nums.size(); ++i) {
             PII cand = root->RangeMax(minNum, nums[i]); // For every "nums[j < i] < nums[i]" 
+            /*
+            Deliberately using "RangeAdd(...)" instead of "RangeWrite(...)" here, consider "[1, 2, 4, 3, 4]" as an example, the value "4" will be visited twice.
+
+            See https://www.yinxiang.com/everhub/note/b904af18-03fd-4dbc-a3d2-67a0daa1518e for an introduction to SegmentTree properties.
+            */
             root->RangeAdd(nums[i], nums[i]+1, {cand.first+1, cand.second}, 0);
         }
         
@@ -125,3 +128,4 @@ public:
         return ans.second;
     }
 };
+
