@@ -7,14 +7,13 @@ class Solution {
 public:
     int solve1(string& S) {
         int n = S.length();
-        
         /*
         "dp[l][r][ch]" is the number of "PalindromicSubsequence"s with distinct content and bordered by "ch"
         
         dp[l][r][ch] = {
             if (l == r && S[l] != ch) 0,
             if (l == r && S[l] == ch) 1,
-            if (S[l] != ch || S[r] != ch) dp[l][r-1][ch] + dp[l+1][r][ch] - dp[l+1][r-1][ch],
+            if (S[l] != ch || S[r] != ch) dp[l][r-1][ch] + dp[l+1][r][ch] - dp[l+1][r-1][ch], // This looks SIMILAR to "dpMightBeSameContent", but why? Consider "a | acaa | c", where "dp[l+1][r-1][*] contains {a,c,aa,aaa,aca}", "dp[l][r-1][*]-dp[l+1][r-1][*] contains {aacaa, aaaa}" and "dp[l+1][r][*]-dp[l+1][r-1][*] contains {caac, cc}".  
             if (S[l] == S[r] == ch) SUM(dp[l+1][r-1][anyCh]) + 2 // The 1st term is "extended by border", while the 2nd term is "border itself for length 1 and length 2".
         }
         */
