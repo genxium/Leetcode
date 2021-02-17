@@ -3,3 +3,4 @@ Similar problems
 - [p502_IPO](https://github.com/genxium/Leetcode/tree/master/p502_IPO),
 - [p629_K_Inverse_Pairs_Array](https://github.com/genxium/Leetcode/tree/master/p629_K_Inverse_Pairs_Array)
 - [p673_Number_of_Longest_Increasing_Subsequence](https://github.com/genxium/Leetcode/tree/master/p673_Number_of_Longest_Increasing_Subsequence),
+- [p798_Smallest_Rotation_with_Highest_Score](https://github.com/genxium/Leetcode/tree/master/p798_Smallest_Rotation_with_Highest_Score),
