@@ -13,6 +13,15 @@ test cases
 class Solution {    
 public:
     int numSubarrayBoundedMax(vector<int>& A, int L, int R) {
+        /*
+        The intuition is that for each "A[i]", if it is the last element in a "valid subarray", then "A[i] <= R" must hold.
+
+        - case L <= A[i] <= R
+          Walk backwards to find the first "j < i && A[j] > R", now every "A[u >= j, i]" is a valid subarray.
+
+        - case A[i] < L
+          Walk backwards to find the first "t < i && L <= A[t] <= R", then continue walking back to find the first "j < i && A[j] > R", now every "A[u >= j, i]" is a valid subarray if "t" exists.
+        */
         int ans = 0;
         int lessThanLCnt = 0, lessThanOrEqualToRCnt = 0;
         for (int i = 0; i < A.size(); ++i) {
