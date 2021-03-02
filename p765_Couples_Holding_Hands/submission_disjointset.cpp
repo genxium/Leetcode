@@ -41,7 +41,7 @@ public:
         int n = row.size();
         for (int i = 0; i < n; i+=2) {
             int groupIndex = i+OFFSET;
-            if (debug) printf("groupIndx for i:%d is %d\n", i, groupIndex);
+            if (debug) printf("groupIndex for i:%d is %d\n", i, groupIndex);
             djsUnite(row[i], groupIndex);
             djsUnite(row[i+1], groupIndex);
         }
