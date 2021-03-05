@@ -1,7 +1,7 @@
 bool const debug = false;
 int const MAXN = 100;
 int const INVALID = -1;
-int memo1[MAXN][MAXN]; // "memo1[i][c]" is the min #changes to make "s[i, ...]" be composed of exactly "c"
+int memo1[MAXN][MAXN]; // "memo1[i][c]" is the min #changes to make "s[i, ...]" be composed of exactly "c" palindromes
 int memo2[MAXN][MAXN]; // "memo2[l][r]" is the #changes to make "s[l, ..., r]" a single palindrome
 
 int changesToMakePalindromic(string &s, int l, int r) {
