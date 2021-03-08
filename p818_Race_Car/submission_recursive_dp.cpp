@@ -34,7 +34,7 @@ public:
         // Way #2
         for (int p = 0; p < (m-1); ++p) {
             int near = (1 << (m-1)) - (1 << p); // In fact ((1 << (m-1)) - 1) - ((1 << (p)) - 1)
-            int cand2 = (m-1+p+2) +dfs(t-near); // Even if "p == 0", we needed the 2 turn arounds to reset "speed = 1".
+            int cand2 = (m-1+p+2) + dfs(t-near); // Even if "p == 0", we needed the 2 turn arounds to reset "speed = 1".
             if (INVALID == cache[t] || cand2 < cache[t]) cache[t] = cand2;    
         }
 
