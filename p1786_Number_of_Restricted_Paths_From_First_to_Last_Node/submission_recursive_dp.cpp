@@ -5,31 +5,31 @@ ULL const MOD = 1000000007;
 ULL const LLMAX = UINT64_MAX;
 
 void dijkstra(int start, unordered_map<int, unordered_map<int, int>> &adj, unordered_map<int, int>& g) {        
-  priority_queue< PII, vector<PII>, greater<PII> > openHeap;
-  set<int> closedSet;
+    priority_queue< PII, vector<PII>, greater<PII> > openHeap;
+    set<int> closedSet;
 
-  // init
-  openHeap.push({0, start});
-  g[start] = 0;
+    // init
+    openHeap.push({0, start});
+    g[start] = 0;
 
-  // loop
-  while (false == openHeap.empty()) {
-      auto expander = openHeap.top(); openHeap.pop();
-      int minGByFar = expander.first;
-      int u = expander.second;            
-      closedSet.insert(u);
-      auto &nbs = adj[u];
-      if (debug) printf("checking expander (minGByFar: %d, u: %d, #successors:%d)\n", minGByFar, u, nbs.size());
-      for (auto &nb : nbs) {
-          int v = nb.first;
-          if (closedSet.count(v)) continue;
-          int candidate = minGByFar + nb.second;
-          if (!g.count(v) || candidate < g[v]) {
-              g[v] = candidate;
-              openHeap.push({candidate, v});
-          }
-      }
-  }    
+    // loop
+    while (false == openHeap.empty()) {
+        auto expander = openHeap.top(); openHeap.pop();
+        int minGByFar = expander.first;
+        int u = expander.second;            
+        closedSet.insert(u);
+        auto &nbs = adj[u];
+        if (debug) printf("checking expander (minGByFar: %d, u: %d, #successors:%d)\n", minGByFar, u, nbs.size());
+        for (auto &nb : nbs) {
+            int v = nb.first;
+            if (closedSet.count(v)) continue;
+            int candidate = minGByFar + nb.second;
+            if (!g.count(v) || candidate < g[v]) {
+                g[v] = candidate;
+                openHeap.push({candidate, v});
+            }
+        }
+    }    
 }
 
 

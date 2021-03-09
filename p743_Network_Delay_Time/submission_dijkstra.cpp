@@ -17,7 +17,7 @@ test cases
 */
 class Solution {
 public:
-        void dijkstra(int start, unordered_map<int, unordered_map<int, int>> &adj, unordered_map<int, int>& g) {        
+    void dijkstra(int start, unordered_map<int, unordered_map<int, int>> &adj, unordered_map<int, int>& g) {        
         // See https://www.yinxiang.com/everhub/note/8f531e5d-f4ab-4164-a459-266ab4b8cda8 for basics of the Dijkstra algorithm.
         priority_queue< PII, vector<PII>, greater<PII> > openHeap;
         set<int> closedSet;

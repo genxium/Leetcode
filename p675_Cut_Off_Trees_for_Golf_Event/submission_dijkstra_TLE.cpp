@@ -18,7 +18,7 @@ test cases
 */
 class Solution {
 public:
-      int dijkstra(int start, int end, ADJ &adj) {        
+    int dijkstra(int start, int end, ADJ &adj) {        
         // See https://www.yinxiang.com/everhub/note/8f531e5d-f4ab-4164-a459-266ab4b8cda8 for basics of the Dijkstra algorithm.
         priority_queue< PII, vector<PII>, greater<PII> > openHeap;
         bool closedSet[MAXN]; 
