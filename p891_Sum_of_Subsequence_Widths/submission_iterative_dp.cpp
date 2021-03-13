@@ -38,7 +38,7 @@ public:
         foreach (i) {
             #subsetWithSmallest(items[i]) := pow2(items[i].cnt)-1 // using "1 ~ items[i].cnt" of "items[i].val" to make new subsets, NOTE THAT "same value but different index is deemed "different"!
             foreach (j < i) {
-                ans += SUM{#subsetWithSmallest(items[i])*(items[i].val - items[j].val)*#subsetWithSmallest(items[j])}
+                ans += #subsetWithSmallest(items[i])*(items[i].val - items[j].val)*#subsetWithSmallest(items[j])
                 #subsetWithSmallest(items[j]) *= (#subsetWithSmallest(items[i])+1) // adding "0 ~ items[i].cnt" to each subset to make a new subset
             }
         }
