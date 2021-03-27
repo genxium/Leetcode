@@ -1,10 +1,9 @@
+bool const debug = false;
 typedef int64_t LL;
 typedef vector<LL> VL;
-int const INTEGER_BIT_LENGTH = sizeof(int)*CHAR_BIT;
 LL const INVALID = -1;
 int const MAXN = 100000;
 LL const MOD = 1000000007;
-bool const debug = false;
 
 LL multiplyMod(LL lhs, LL rhs) {
     return (lhs*rhs)%MOD;
@@ -16,6 +15,7 @@ LL myPow(LL x, LL n) {
     if (1 == n || 0 == x || 1 == x) return x; 
     if (0 == n) return 1;
 
+    int const INTEGER_BIT_LENGTH = sizeof(int)*CHAR_BIT;
     int nBinaryLengthUpper = 0;
     while (nBinaryLengthUpper < INTEGER_BIT_LENGTH && (1 << nBinaryLengthUpper) <= n) ++nBinaryLengthUpper;
 
