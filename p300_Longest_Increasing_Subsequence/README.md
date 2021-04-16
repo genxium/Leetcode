@@ -5,3 +5,4 @@ For higher dimensional generalization, see
 
 Similar problems
 - [p673_Number_of_Longest_Increasing_Subsequence](https://github.com/genxium/Leetcode/tree/master/p673_Number_of_Longest_Increasing_Subsequence), it shows an alternative approach to find "LongestIncreasingSubsequence" by "SegmentTree".
+- [p960_Delete_Columns_to_Make_Sorted_III](https://github.com/genxium/Leetcode/tree/master/p960_Delete_Columns_to_Make_Sorted_III)
