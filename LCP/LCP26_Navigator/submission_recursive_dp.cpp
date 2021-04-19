@@ -16,21 +16,22 @@ int memo[MAXN+1][2][2]; // memo[u][hasExternalNavigator][putOneNavigatorAtU] = m
 test cases
 [1,2,null,3,4]
 [1,2,3,4]
+[1,2,3,4,5]
 [1,2,null,3,4,null,null,5,6,7,8,9,10]
 [1,2,3,4,5,6,7,8,9,10]
 */
 class Solution {
 public:
-    int dfs(TreeNode* root, bool hasExtNav, bool putHere, bool hasParent) {
+    int dfs(TreeNode* root, bool hasExtNav, bool putHere) {
         if (!root) return putHere ? INT_MAX : 0; // impossible to put on nonexistent node
         int u = root->val;
         if (INVALID != memo[u][hasExtNav][putHere]) return memo[u][hasExtNav][putHere];
                 
         // Prepare the values to choose from.
-        int lNotPutNoExtNav = dfs(root->left, false, false, true), lPutNoExtNav = dfs(root->left, false, true, true);
-        int lNotPutWithExtNav = dfs(root->left, true, false, true), lPutWithExtNav = dfs(root->left, true, true, true);
-        int rNotPutNoExtNav = dfs(root->right, false, false, true), rPutNoExtNav = dfs(root->right, false, true, true);
-        int rNotPutWithExtNav = dfs(root->right, true, false, true), rPutWithExtNav = dfs(root->right, true, true, true);
+        int lNotPutNoExtNav = dfs(root->left, false, false), lPutNoExtNav = dfs(root->left, false, true);
+        int lNotPutWithExtNav = dfs(root->left, true, false), lPutWithExtNav = dfs(root->left, true, true);
+        int rNotPutNoExtNav = dfs(root->right, false, false), rPutNoExtNav = dfs(root->right, false, true);
+        int rNotPutWithExtNav = dfs(root->right, true, false), rPutWithExtNav = dfs(root->right, true, true);
         
         int cand = INT_MAX;
         if (!root->left && !root->right) {
@@ -42,41 +43,26 @@ public:
             
             if (!root->left || !root->right) {
                 // only 1 child, "external navigator from sibling" is unnecessary
-                int lhs = putHere;
-                if (debug) printf("\t[u:%d][hasExtNav:%d][putHere:%d], lhs is %d\n", u, hasExtNav, putHere, lhs);
+                int foo = putHere;
+                if (debug) printf("\t[u:%d][hasExtNav:%d][putHere:%d], foo is %d\n", u, hasExtNav, putHere, foo);
                 
-                int rhs = INT_MAX;
-                if (root->left) {
-                    if (hasExtNavNow) {
-                        rhs = min(lNotPutWithExtNav, lPutWithExtNav);
-                        // if (debug) printf("\t[u:%d][hasExtNav:%d][putHere:%d], rhs is %d #1\n", u, hasExtNav, putHere, rhs);
-                    } else {
-                        rhs = min(lNotPutNoExtNav, lPutNoExtNav);;
-                        // if (debug) printf("\t[u:%d][hasExtNav:%d][putHere:%d], rhs is %d #2\n", u, hasExtNav, putHere, rhs);
-                    }
-                } else {
-                    if (hasExtNavNow) {
-                        rhs = min(rNotPutWithExtNav, rPutWithExtNav);
-                        // if (debug) printf("\t[u:%d][hasExtNav:%d][putHere:%d], rhs is %d #3\n", u, hasExtNav, putHere, rhs);
-                    } else {
-                        rhs = min(rNotPutNoExtNav, rPutNoExtNav);
-                        // if (debug) printf("\t[u:%d][hasExtNav:%d][putHere:%d], rhs is %d #4\n", u, hasExtNav, putHere, rhs);
-                    }
-                }
-                cand = lhs+rhs;
+                int bar = hasExtNavNow 
+                          ?
+                          (root->left ? min(lNotPutWithExtNav, lPutWithExtNav) : min(rNotPutWithExtNav, rPutWithExtNav))
+                          :
+                          (root->left ? min(lNotPutNoExtNav, lPutNoExtNav) : min(rNotPutNoExtNav, rPutNoExtNav))
+                          ;
+                cand = foo+bar;
             } else {
                 // both "root->left" and "root->right" are non-null
-                bool needNavForAbove = false;
-                if (hasParent) {
-                    needNavForAbove = (false == (hasExtNav | putHere));
-                }
                 
-                // traverse all possible uses of "MUTUAL external navigator from sibling"    
-                int tmp = putHere + lPutWithExtNav + rPutWithExtNav; // Base case, both using "put" can be regarded as "MUTUAL external navigator for each other"
+                // [TYPE-A combination] traverse all possible uses of "MUTUAL external navigator from sibling"    
+                int tmp = putHere + lPutWithExtNav + rPutWithExtNav; // Base case
                 cand = tmp;
                                 
                 if ((lNotPutWithExtNav > 0 && INT_MAX != lNotPutWithExtNav)) {
-                    tmp = putHere + lNotPutWithExtNav +rPutWithExtNav;
+                    // [WARNING] It's important to check "lNotPutWithExtNav > 0" here, otherwise we're NOT providing the "MUTUAL external navigator" for the "right subtree", i.e. shouldn't use "rPutWithExtNav".
+                    tmp = putHere + lNotPutWithExtNav + rPutWithExtNav;
                     cand = min(cand, tmp);
                 }
 
@@ -90,42 +76,23 @@ public:
                     cand = min(cand, tmp);
                 }
 
-                // can try to inherit the "hasExtNavNow" for each subtree
-                if (false == needNavForAbove) {
-                    // can use single-sided "external navigator from sibling"    
-                    if (false == hasExtNavNow) {
-                        tmp = putHere + lPutNoExtNav + min(rNotPutWithExtNav, rPutWithExtNav);
+                // [TYPE-B combination] not necessarily having "MUTUAL external navigator from sibling"
+                if (true == hasExtNavNow) {
+                    tmp = putHere + lPutWithExtNav + min(rNotPutWithExtNav, rPutWithExtNav);
+                    cand = min(cand, tmp);
+                    if ((lNotPutWithExtNav > 0 && INT_MAX != lNotPutWithExtNav)) {
+                        tmp = putHere + lNotPutWithExtNav + min(rNotPutWithExtNav, rPutWithExtNav);
                         cand = min(cand, tmp);
-                        if ((lNotPutNoExtNav > 0 && INT_MAX != lNotPutNoExtNav)) {
-                            tmp = putHere + lNotPutNoExtNav + min(rNotPutWithExtNav, rPutWithExtNav);
-                            cand = min(cand, tmp);
-                            if (debug) printf("\t[u:%d][hasExtNav:%d][putHere:%d], lNotPutNoExtNav is %d, rNotPutWithExtNav is %d, rPutWithExtNav is %d #5\n", u, hasExtNav, putHere, lNotPutNoExtNav, rNotPutWithExtNav, rPutWithExtNav);
-                        }
+                        if (debug) printf("\t[u:%d][hasExtNav:%d][putHere:%d], lNotPutWithExtNav is %d, rNotPutWithExtNav is %d, rPutWithExtNav is %d #7\n", u, hasExtNav, putHere, lNotPutWithExtNav, rNotPutWithExtNav, rPutWithExtNav);
+                    }
 
-                        tmp = putHere + rPutNoExtNav + min(lNotPutWithExtNav, lPutWithExtNav);
+                    tmp = putHere + rPutWithExtNav + min(lNotPutWithExtNav, lPutWithExtNav);
+                    cand = min(cand, tmp);
+                    if ((rNotPutWithExtNav > 0 && INT_MAX != rNotPutWithExtNav)) {
+                        tmp = putHere + rNotPutWithExtNav + min(lNotPutWithExtNav, lPutWithExtNav);
                         cand = min(cand, tmp);
-                        if ((rNotPutNoExtNav > 0 && INT_MAX != rNotPutNoExtNav)) {
-                            tmp = putHere + rNotPutNoExtNav + min(lNotPutWithExtNav, lPutWithExtNav);
-                            cand = min(cand, tmp);
-                        }
-                    } else {
-                        tmp = putHere + lPutWithExtNav + min(rNotPutWithExtNav, rPutWithExtNav);
-                        cand = min(cand, tmp);
-                        if ((lNotPutWithExtNav > 0 && INT_MAX != lNotPutWithExtNav)) {
-                            tmp = putHere + lNotPutWithExtNav + min(rNotPutWithExtNav, rPutWithExtNav);
-                            cand = min(cand, tmp);
-                            if (debug) printf("\t[u:%d][hasExtNav:%d][putHere:%d], lNotPutWithExtNav is %d, rNotPutWithExtNav is %d, rPutWithExtNav is %d #7\n", u, hasExtNav, putHere, lNotPutWithExtNav, rNotPutWithExtNav, rPutWithExtNav);
-                        }
-
-                        tmp = putHere + rPutWithExtNav + min(lNotPutWithExtNav, lPutWithExtNav);
-                        cand = min(cand, tmp);
-                        if ((rNotPutWithExtNav > 0 && INT_MAX != rNotPutWithExtNav)) {
-                            tmp = putHere + rNotPutWithExtNav + min(lNotPutWithExtNav, lPutWithExtNav);
-                            cand = min(cand, tmp);
-                        }
-                    }                
+                    }
                 }
-
             }
         }
         
@@ -134,13 +101,34 @@ public:
     }
     
     int navigation(TreeNode* root) {
-        int ans = 1;
         memset(memo, INVALID, sizeof memo);
-        int cand1 = dfs(root, false, false, false);
-        if (debug) printf("\n");
-        int cand2 = dfs(root, false, true, false);
-        return min(cand1, cand2);
+        int ans = dfs(root, false, false);
+        ans = min(ans, dfs(root, false, true));
+
+        if (root->left && root->right) {
+            // [TYPE-ROOT combination] the root doesn't necessarily need "MUTUAL external navigator from sibling" for its left and right child, the "putHere" for this case is always "false"
+
+            // Prepare the values to choose from.
+            int lNotPutNoExtNav = dfs(root->left, false, false), lPutNoExtNav = dfs(root->left, false, true);
+            int lNotPutWithExtNav = dfs(root->left, true, false), lPutWithExtNav = dfs(root->left, true, true);
+            int rNotPutNoExtNav = dfs(root->right, false, false), rPutNoExtNav = dfs(root->right, false, true);
+            int rNotPutWithExtNav = dfs(root->right, true, false), rPutWithExtNav = dfs(root->right, true, true);
+
+            int tmp = lPutNoExtNav + min(rNotPutWithExtNav, rPutWithExtNav);
+            ans = min(ans, tmp);
+            if ((lNotPutNoExtNav > 0 && INT_MAX != lNotPutNoExtNav)) {
+                tmp = lNotPutNoExtNav + min(rNotPutWithExtNav, rPutWithExtNav);
+                ans = min(ans, tmp);
+            }
+
+            tmp = rPutNoExtNav + min(lNotPutWithExtNav, lPutWithExtNav);
+            ans = min(ans, tmp);
+            if ((rNotPutNoExtNav > 0 && INT_MAX != rNotPutNoExtNav)) {
+                tmp = rNotPutNoExtNav + min(lNotPutWithExtNav, lPutWithExtNav);
+                ans = min(ans, tmp);
+            }
+        }
+
+        return ans;
     }
 };
-
-
