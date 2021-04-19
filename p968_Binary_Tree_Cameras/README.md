@@ -9,3 +9,5 @@ This problem is similar to the ["ExactCover" problem](https://www.yinxiang.com/e
 
 The best solution is to put cameras at 1 & 2.
 
+Similar problems
+- [LCP26_Navigator](https://github.com/genxium/Leetcode/tree/master/LCP/LCP26_Navigator) 
