@@ -24,7 +24,7 @@ public:
             for (int m = 1; m <= min(i+1, n); ++m) {
                 dp[i][m] = dp[i-1][m-1] + m*satisfaction[i];
                 
-                if (m <= i-1) {
+                if (m <= i) {
                     dp[i][m] = max(dp[i][m], dp[i-1][m]);    
                 }
                 
