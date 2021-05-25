@@ -18,9 +18,9 @@ test cases
 class Solution {
 public:
     int minDifficulty(vector<int>& jobDifficulty, int d) {
-        /*
-        Note that the days are interchangeable, so only consider putting new job into the last day is sufficient.
-        */
+
+        // We only need consider putting the latest job into the existing last day or to a new day, due to the dependency assumption.
+
         int n = jobDifficulty.size();
         
         if (n < d) return -1;
@@ -28,7 +28,7 @@ public:
         vector<vector<map<int, int>>> dp(d, vector<map<int, int>>(n)); // dp[k][i][s] = min sum difficulty that can be obtained, if using all of "jobDifficulty[0, ..., i]" in EXACTLY the first "k" days where the difficulty of the last day is "s". All 0-based.
         
         /*
-        It's implied that when dp[k][i][*] for "n-i < d-k" should be -1.
+        It's implied that dp[k][i][*] for "n-i < d-k" should be -1.
         */
         // init 0th-day
         int maxByFar = INT_MIN;
