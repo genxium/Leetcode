@@ -1,0 +1,1 @@
+This problem can also be solved by `dp[bitmask] = max{dp[prevBitMask] + count_setbit(bitmask) | bitmask is valid itself && bitmask is compatible with prevBitMask}`, iterating from the first row to the last.
