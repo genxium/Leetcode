@@ -9,7 +9,7 @@ bool hasAugmentedPath(int u, vector<vector<int>> &g, vector<int> &mt, vector<boo
     for (int v : g[u]) {
         int uu = mt[v];
         if (-1 == uu || hasAugmentedPath(uu, g, mt, used)) {
-            // [WARNING] In the latter case, the existing value of "mt[to]" can be updated!
+            // [WARNING] In the latter case, the existing value of "mt[v]" can be updated!
             if (debug) printf("assigning mt[v:%d] = u:%d\n", v, u);
             mt[v] = u;
             return true;
