@@ -6,6 +6,8 @@ bool hasAugmentedPath(int u, vector<vector<int>> &g, vector<int> &mt, vector<boo
     if (used[u]) return false;
     // Notation convention: 'u' on the left (for even seats), 'v' on the right (for odd seats)
     used[u] = true;
+
+    // 'u' for even, 'v' for odd
     for (int v : g[u]) {
         int uu = mt[v];
         if (-1 == uu || hasAugmentedPath(uu, g, mt, used)) {
@@ -22,9 +24,10 @@ int hungarianMaxBipartite(vector<vector<int>> &g, int maxEvenId, int maxOddId) {
     vector<int> mt(maxOddId+1, -1); // the "matching even seat" for the odd seat
     vector<bool> used(maxEvenId+1, false); // whether or not an "even seat" is used in the current dfs
     
-    for (int v = 0; v <= maxEvenId; ++v) {
+    // 'u' for even, 'v' for odd
+    for (int u = 0; u <= maxEvenId; ++u) {
         used.assign(maxEvenId+1, false); // [WARNING] Resets every cycle.
-        hasAugmentedPath(v, g, mt, used);
+        hasAugmentedPath(u, g, mt, used);
     }
     
     int ret = 0;
