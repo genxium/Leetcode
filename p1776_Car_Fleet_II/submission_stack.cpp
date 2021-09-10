@@ -1,4 +1,4 @@
-bool debug = true;
+bool debug = false;
 
 /*
 test cases
@@ -32,19 +32,30 @@ public:
             auto &currentCar = cars[i];
             while (!stk.empty()) {
                 int repIdx = stk.top(); 
-                auto &nearestFleetRep = cars[repIdx];
-                if (currentCar[1] <= nearestFleetRep[1]) {
-                    // This "nearestFleetRep" is too fast such that even if "currentCar" would join the same fleet, it would be strictly later than the joining of "nearestFleetRep".
-                    stk.pop();
-                } else if (ans[repIdx] > 0 && (double)(nearestFleetRep[0] - currentCar[0])/(currentCar[1] - nearestFleetRep[1]) >= ans[repIdx]) {
-                    // This "nearestFleetRep" is too fast hence same as above.
+                auto &nearestFleetRepCand = cars[repIdx];
+
+                bool tooFast1 = currentCar[1] <= nearestFleetRepCand[1]; 
+                bool tooFast2 = ans[repIdx] > 0 && (double)(nearestFleetRepCand[0] - currentCar[0])/(currentCar[1] - nearestFleetRepCand[1]) >= ans[repIdx]; 
+                if (tooFast1 || tooFast2) {
+                    /*
+                    This "nearestFleetRepCand" is too fast such that even if "currentCar" would join the same fleet, it would be strictly later than the joining of "nearestFleetRepCand".
+
+                    Moreover, such "nearestFleetRepCand" has no chance to be a candidate for any "cars[h < i]" again, because either "cars[i]" or the "nearestRep of this nearestFleetRepCand" can be a better candidate for "cars[h]".
+                    */
                     stk.pop();
                 } else {
                     break;
                 }
             }
 
+
             if (!stk.empty()) {
+                /*
+                Now in the rest of the stack are all valid candidates, but only the top is the correct representative for the fleet that "cars[i]" will join first, because 
+- the top is pushed last hence nearest to the current "cars[i]", and 
+- the top is guaranteed NOT to collide with the second-top earlier than colliding with "cars[i]" by the just ended traversal.
+                */
+
                 // This is valid for "ans[repIdx] == -1.0" too.
                 int repIdx = stk.top();
                 auto &nearestFleetRep = cars[repIdx];
@@ -56,3 +67,4 @@ public:
         return ans;
     }
 };
+
