@@ -87,7 +87,7 @@ vector<pair<int, VAR_POW_T>> toPrintBuff(RT const& result) {
  *
  * It's intended that regular-expression notation is NOT used to describe the rules.
  *
- * The introduction of "variable" makes it impossible to return just an "integer" for each rule, thus a uniformed "ResultType" is proposed here.
+ * The introduction of "variable" makes it impossible to return just an "integer" for each rule, thus a uniform "ResultType" is proposed here.
  * */
 RT add(RT& lhs, RT& rhs, bool isSubtraction) {
     RT result;
