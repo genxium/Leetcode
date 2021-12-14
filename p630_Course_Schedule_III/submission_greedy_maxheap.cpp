@@ -20,8 +20,7 @@ The trick to improve is keeping track of "stCollection.back()" alone. Upon the e
 - update "stCollection.back()" respectively.
 */
 
-#define VI vector<int>
-#define STCOLLECTIONTYPE list<StateTuple>
+typedef vector<int> VI;
 
 class CourseCompare {
 public:
@@ -30,72 +29,55 @@ public:
     }
 };
 
-class StateTuple {
-public:
-    int finishedCourseCount;
-    int earliestDayToAchieve;
-    priority_queue<VI, vector<VI>, less<VI>> representingCourses;
-    
-    StateTuple(int a, int b, priority_queue<VI, vector<VI>, less<VI>> c) {
-        finishedCourseCount = a;
-        earliestDayToAchieve = b;
-        representingCourses = c;
-    }
-};
-
+/*
+test cases
+[[100, 200], [200, 1300], [1000, 1250], [2000, 3200]]
+[[5,5],[4,6],[2,6]]
+[[5,15],[3,19],[6,7],[2,10],[5,16],[8,14],[10,11],[2,19]]
+[[3,2],[4,3]]
+*/
 class Solution {
 public:
     int scheduleCourse(vector<vector<int>>& courses) {
-        /*
-        test case #1
-        [[100, 200], [200, 1300], [1000, 1250], [2000, 3200]]
-        
-        test case #2
-        [[5,5],[4,6],[2,6]]
-        
-        test case #3
-        [[5,15],[3,19],[6,7],[2,10],[5,16],[8,14],[10,11],[2,19]]
-        */
-        int n = courses.size();
-        sort(courses.begin(), courses.end(), CourseCompare());
-        /*
-        printf("sorted courses\n");
-        for (int i = 0; i < n; ++i) {
-            VI course = courses[i];
-            printf("\tcourse.duration:%d, course.dueDay:%d\n", course[0], course[1]);
+        vector<VI> validCourses;
+        validCourses.reserve(courses.size());
+        for (VI &course : courses) {
+            if (course[1] < course[0]) continue;
+            validCourses.push_back(course);
         }
-        */
+        int n = validCourses.size();
+        if (0 == n) return 0;
+        sort(validCourses.begin(), validCourses.end(), CourseCompare());
+        
         // init
-        VI firstCourse = courses[0];
-        priority_queue<VI, vector<VI>, less<VI>> representingCourses; 
-        representingCourses.push(firstCourse);
-        StateTuple stCollectionBack(1, firstCourse[0], representingCourses);
+        VI& firstCourse = validCourses[0];
+        priority_queue<int, vector<int>, less<int>> representingCourses; 
+        int finishedCourseCount = 1; 
+        int earliestDayToAchieve = firstCourse[0];
+        representingCourses.push(firstCourse[0]);
         
         // loop
         for (int i = 1; i < n; ++i) {
-            VI course = courses[i];
+            VI& course = validCourses[i];
             int prevShouldFinishOnOrBeforeDay = course[1] - course[0];
             
-            if (stCollectionBack.earliestDayToAchieve <= prevShouldFinishOnOrBeforeDay) {
-                stCollectionBack.finishedCourseCount += 1;
-                stCollectionBack.earliestDayToAchieve = (stCollectionBack.earliestDayToAchieve + course[0]);
-                stCollectionBack.representingCourses.push(course);
+            if (earliestDayToAchieve <= prevShouldFinishOnOrBeforeDay) {
+                finishedCourseCount += 1;
+                earliestDayToAchieve = (earliestDayToAchieve + course[0]);
+                representingCourses.push(course[0]);
             } else {
-                VI targetCourseToReplace = stCollectionBack.representingCourses.top();
-                if (targetCourseToReplace[0] > course[0]) {
-                    /*
-                    As "courses[]" is sorted w.r.t. ascending order of ".dueDay", it's guaranteed that "targetCourseToReplace" won't be a valid candidate for "stCollectionBack" anymore after popped out, because by reaching here 
-                    - "targetCourseToReplace.duration > course.duration", 
-                    - && "targetCourseToReplace.dueDay <= course.dueDay", 
-                    - && "SUM(stCollectionBack.representingCourses.duration) + course.duration > course.dueDay".    
-                    */
-                    stCollectionBack.representingCourses.pop();
-                    stCollectionBack.representingCourses.push(course);
-                    stCollectionBack.earliestDayToAchieve -= (targetCourseToReplace[0] - course[0]);
+                int targetCourseDurationToReplace = representingCourses.top();
+                if (targetCourseDurationToReplace > course[0]) {
+                    // In this case, it's always beneficial to replace an existing longer duration by the current shorter duration (and later due)
+                    representingCourses.pop();
+                    representingCourses.push(course[0]);
+                    earliestDayToAchieve -= (targetCourseDurationToReplace - course[0]);
                 }
             }
         }
                 
-        return stCollectionBack.finishedCourseCount;
+        return finishedCourseCount;
     }
 };
+
+
