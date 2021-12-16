@@ -9,6 +9,35 @@ ULL const MAXPOS = 1000000000;
 class SegTreeNode {
 public:
     int fullCoverAccDiff; // The full cover count exactly performed at the current node, WOULDN'T aggregate from any child. 
+    /*
+    Note that the definition of "fullCoverAccDiff" here is critical. No aggregation here means that when we have
+
+                        [0, 4)
+                    fullCoverAccDiff: 1
+                    /           \ 
+                [0, 2)          [2, 4)      
+    fullCoverAccDiff: 1    fullCoverAccDiff: 0
+
+
+    what happened was like
+    - [0, 4) was exactly covered once;
+    - [0, 2) was exactly covered once.
+
+    If later the event 
+    - [2, 4) was exactly covered once
+    happened it only made 
+
+                        [0, 4)
+                    fullCoverAccDiff: 1
+                    /           \ 
+                [0, 2)          [2, 4)      
+    fullCoverAccDiff: 1    fullCoverAccDiff: 1
+
+    , i.e. no change to "[0, 4).fullCoverAccDiff == 1".
+    */
+    /*
+    If an "aggregated fullCoverAccDiff" is truely in demand, it'd be even more difficult than the "activeBottomLengthSum" to maintain, which is out of scope of this problem.
+    */
     int activeBottomLengthSum;
     int leftIndexClosed, rightIndexOpen;
     SegTreeNode *lChild, *rChild;
@@ -43,7 +72,7 @@ public:
     
         int indentSpaceCount = (level << 1);
         
-        if (fullCoverAccDiff > 0) {
+        if (0 < fullCoverAccDiff) {
             return (min(targetRightIndexOpen, rightIndexOpen)-max(targetLeftIndexClosed, leftIndexClosed));
         }
 
@@ -86,13 +115,12 @@ public:
                 // [WARNING] In this case, "activeBottomLengthSum" might be later updated by "RangeSum"!
                 activeBottomLengthSum = INVALID;
             }
-            if (debug & debugRangeAdd) printf("%*sRangeAdd, [%d, %d) updated to (fullCoverAccDiff:%d, activeBottomLengthSum:%d).\n", indentSpaceCount, "", leftIndexClosed, rightIndexOpen, fullCoverAccDiff, activeBottomLengthSum);
-            return;
+        } else {
+            // [WARNING] In this case, "activeBottomLengthSum" might be later updated by "RangeSum"!
+            activeBottomLengthSum = INVALID;
+            getOrCreateLChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, unifiedDiff, level+1);    
+            getOrCreateRChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, unifiedDiff, level+1);
         }
-        // [WARNING] In this case, "activeBottomLengthSum" might be later updated by "RangeSum"!
-        activeBottomLengthSum = INVALID;
-        getOrCreateLChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, unifiedDiff, level+1);    
-        getOrCreateRChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, unifiedDiff, level+1);
 
         if (debug & debugRangeAdd) printf("%*sRangeAdd, [%d, %d) updated to (fullCoverAccDiff:%d, activeBottomLengthSum:%d).\n", indentSpaceCount, "", leftIndexClosed, rightIndexOpen, fullCoverAccDiff, activeBottomLengthSum);
     }
@@ -118,7 +146,7 @@ public:
 
         sort(edges.begin(), edges.end(), [](vector<int> const& lhs, vector<int> const& rhs) {
             if (lhs[3] != rhs[3]) return lhs[3] < rhs[3];
-            return lhs[2] > rhs[2]; // bottomEdge comes first
+            return lhs[2] > rhs[2]; // Bottom edge comes first!
         });
 
         SegTreeNode* root = new SegTreeNode(0, MAXPOS);
@@ -143,3 +171,4 @@ public:
         return mergedArea;
     }
 };
+

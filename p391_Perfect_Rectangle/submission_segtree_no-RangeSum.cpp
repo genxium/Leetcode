@@ -1,212 +1,127 @@
-#pragma GCC optimize("Ofast")
-#pragma GCC target("sse,sse2,sse3,ssse3,sse4,popcnt,abm,mmx,avx,avx2,tune=native")
+bool debug = false;
+bool debugRangeAdd = false;
+typedef uint64_t ULL;
+int const INVALID = -1;
+ULL const MAXPOS = 100000;
 
-bool TOP = false, BOTTOM = true; // Made sure that "TOP" precedes "BOTTOM" in "sortedYEdgeList" for same "y-value", such that we can detect an overlay in "RangeAdd". 
-
-class Rectangle {
+// See https://github.com/genxium/Leetcode/tree/master/p850_Rectangle_Area_II for introductory information on segment tree. We're deliberately NOT USING "RangeSum" to speed up the solution!
+class SegTreeNode {
 public:
-  int l, r, t, b;
-  int xIndexL, xIndexR;
-  
-  Rectangle(int aL, int aR, int aB, int aT) {
-    l = aL;
-    r = aR;
-    b = aB;
-    t = aT;
-  }
+    int fullCoverAccDiff; // The full cover count exactly performed at the current node, WOULDN'T aggregate from any child. 
+    int activeBottomLengthSum;
+    int leftIndexClosed, rightIndexOpen;
+    SegTreeNode *lChild, *rChild;
+
+    SegTreeNode(int lClosed, int rOpen): fullCoverAccDiff(0), activeBottomLengthSum(0), leftIndexClosed(lClosed), rightIndexOpen(rOpen), lChild(NULL), rChild(NULL) {}
+
+    int calcMid() {
+        return ((leftIndexClosed+rightIndexOpen) >> 1);
+    }
+
+    SegTreeNode* getOrCreateLChild() {
+        if (NULL == lChild) {
+            int mid = calcMid();
+            lChild = new SegTreeNode(leftIndexClosed, mid);
+        }
+        return lChild;
+    }
+
+    SegTreeNode* getOrCreateRChild() {
+        if (NULL == rChild) {
+            int mid = calcMid();
+            rChild = new SegTreeNode(mid, rightIndexOpen);
+        }
+        return rChild;
+    }
+
+    void RangeAdd(int newSegLeftIndexClosed, int newSegRightIndexOpen, int unifiedDiff, int level) {
+        // Reject invalid "[newSegLeftIndexClosed, newSegRightIndexOpen)"s. 
+        if (newSegLeftIndexClosed >= newSegRightIndexOpen) return;
+        if (newSegLeftIndexClosed >= rightIndexOpen) return;
+        if (newSegRightIndexOpen <= leftIndexClosed) return;
+
+        int indentSpaceCount = (level << 1);
+        if (debug & debugRangeAdd) printf("%*sRangeAdd, adding [%d, %d):%d into [%d, %d):%d.\n", indentSpaceCount, "", newSegLeftIndexClosed, newSegRightIndexOpen, unifiedDiff, leftIndexClosed, rightIndexOpen, fullCoverAccDiff);
+
+        if (newSegLeftIndexClosed <= leftIndexClosed && rightIndexOpen <= newSegRightIndexOpen) {
+            // Proactively stops at "full cover" update.
+            fullCoverAccDiff += unifiedDiff;
+        } else {
+            getOrCreateLChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, unifiedDiff, level+1);    
+            getOrCreateRChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, unifiedDiff, level+1);
+        }
+
+        if (0 < fullCoverAccDiff) {
+            activeBottomLengthSum = rightIndexOpen-leftIndexClosed;
+        } else {
+            activeBottomLengthSum = 0;
+            if (NULL != lChild) {
+                activeBottomLengthSum += lChild->activeBottomLengthSum; 
+            }
+
+            if (NULL != rChild) {
+                activeBottomLengthSum += rChild->activeBottomLengthSum;
+            }
+        }
+        
+        if (debug & debugRangeAdd) printf("%*sRangeAdd, [%d, %d) updated to (fullCoverAccDiff:%d).\n", indentSpaceCount, "", leftIndexClosed, rightIndexOpen, fullCoverAccDiff);
+    }
 };
 
-class SegmentTreeNode {
-public:
-  int idx = 0;
-  int fullCoverAccDiff = 0; // Accumulated diff of this node by "full cover" updates.  
-  int leftIndexClosed; // To be initialized upon construction.
-  int rightIndexOpen; // To be initialized upon construction.
-  int leftXClosed;
-  int rightXClosed; // It's BY DESIGN that "rightXClosed = discretizedXDict[rightIndexOpen]" in this problem/solution.
-};
-
-#define MAX_DISCRETIZED_X 5501
-SegmentTreeNode theTree[((1+MAX_DISCRETIZED_X) << 1)+(1+MAX_DISCRETIZED_X)]; // to avoid the lag caused by heap allocation
-int discretizedXDict[MAX_DISCRETIZED_X]; // sortedDedupedIndex -> value
-int discretizedXDictSize = 0;
-
-void RangeAdd(SegmentTreeNode* currentRoot, int newSegLeftIndexClosed, int newSegRightIndexOpen, pair<int, bool> unifiedYEdge, bool &gotOverlay, int level) {
-  // Reject invalid "[newSegLeftIndexClosed, newSegRightIndexOpen)"s. 
-  if (newSegLeftIndexClosed >= newSegRightIndexOpen) return;
-  if (newSegLeftIndexClosed >= currentRoot->rightIndexOpen) return;
-  if (newSegRightIndexOpen <= currentRoot->leftIndexClosed) return;
-
-  // Snap valid "[newSegLeftIndexClosed, newSegRightIndexOpen)"s.
-  newSegLeftIndexClosed = (newSegLeftIndexClosed > currentRoot->leftIndexClosed ? newSegLeftIndexClosed : currentRoot->leftIndexClosed);
-  newSegRightIndexOpen = (newSegRightIndexOpen < currentRoot->rightIndexOpen ? newSegRightIndexOpen : currentRoot->rightIndexOpen);
-  
-  int indentSpaceCount = (level << 1);
-
-  // printf("%*sRangeAdd, currentRoot:[%d, %d), [newSegLeftIndexClosed:%d, newSegRightIndexOpen:%d), (y: %d, flag:%s)\n", indentSpaceCount, "", currentRoot->leftIndexClosed, currentRoot->rightIndexOpen, newSegLeftIndexClosed, newSegRightIndexOpen, unifiedYEdge.first, unifiedYEdge.second == TOP ? "TOP" : "BOTTOM");
-
-  if (0 < currentRoot->fullCoverAccDiff && unifiedYEdge.second == BOTTOM) {
-    gotOverlay = true;
-    return;
-  }
-
-  if (newSegLeftIndexClosed <= currentRoot->leftIndexClosed && newSegRightIndexOpen >= currentRoot->rightIndexOpen) {
-    // printf("%*sRangeAdd(pre), currentRoot:[%d, %d).fullCoverAccDiff == %d\n", indentSpaceCount, "", currentRoot->leftIndexClosed, currentRoot->rightIndexOpen, currentRoot->fullCoverAccDiff);
-    // Proactively stops at "full cover" update.
-    if (unifiedYEdge.second == TOP) {
-      currentRoot->fullCoverAccDiff += -1;
-    } else {
-      currentRoot->fullCoverAccDiff += +1;
-    }
-    // printf("%*sRangeAdd(post), currentRoot:[%d, %d).fullCoverAccDiff == %d\n", indentSpaceCount, "", currentRoot->leftIndexClosed, currentRoot->rightIndexOpen, currentRoot->fullCoverAccDiff);
-    return;
-  }
-  int mid = ((currentRoot->leftIndexClosed + currentRoot->rightIndexOpen) >> 1);
-  int lChildIdx = (currentRoot->idx << 1);
-  if (newSegLeftIndexClosed < mid) {
-    if (0 == theTree[lChildIdx].idx) {
-      theTree[lChildIdx].idx = lChildIdx;
-      theTree[lChildIdx].leftIndexClosed = currentRoot->leftIndexClosed;
-      theTree[lChildIdx].rightIndexOpen = mid;
-      // auto &lChild = theTree[lChildIdx];
-      // printf("%*sinitializing lChild with idx:%d, leftIndexClosed:%d, rightIndexOpen:%d\n", indentSpaceCount, "", lChildIdx, lChild.leftIndexClosed, lChild.rightIndexOpen);
-
-      theTree[lChildIdx].leftXClosed = discretizedXDict[theTree[lChildIdx].leftIndexClosed];
-      theTree[lChildIdx].rightXClosed = (
-                            theTree[lChildIdx].rightIndexOpen >= discretizedXDictSize 
-                            ?
-                            INT_MAX 
-                            : 
-                            discretizedXDict[theTree[lChildIdx].rightIndexOpen]
-                            );
-    }
-    RangeAdd(&(theTree[lChildIdx]), newSegLeftIndexClosed, newSegRightIndexOpen, unifiedYEdge, gotOverlay, level+1);
-  }
-
-  int rChildIdx = (currentRoot->idx << 1)+1;
-  if (newSegRightIndexOpen > mid) {
-    if (0 == theTree[rChildIdx].idx) {
-      theTree[rChildIdx].idx = rChildIdx;
-      theTree[rChildIdx].leftIndexClosed = mid;
-      theTree[rChildIdx].rightIndexOpen = currentRoot->rightIndexOpen;
-      // printf("%*sinitializing rChild with idx:%d, leftIndexClosed:%d, rightIndexOpen:%d\n", indentSpaceCount, "", rChildIdx, rChild.leftIndexClosed, rChild.rightIndexOpen);
-      theTree[rChildIdx].leftXClosed = discretizedXDict[theTree[rChildIdx].leftIndexClosed];
-      theTree[rChildIdx].rightXClosed = (
-                            theTree[rChildIdx].rightIndexOpen >= discretizedXDictSize 
-                            ?
-                            INT_MAX 
-                            : 
-                            discretizedXDict[theTree[rChildIdx].rightIndexOpen]
-                            );
-    }
-    RangeAdd(&(theTree[rChildIdx]), newSegLeftIndexClosed, newSegRightIndexOpen, unifiedYEdge, gotOverlay, level+1);
-  }
-  
-  currentRoot->fullCoverAccDiff = min(theTree[lChildIdx].fullCoverAccDiff, theTree[rChildIdx].fullCoverAccDiff);
-}
-
+/*
+test cases
+[[1,1,3,3],[3,1,4,2],[3,2,4,4],[1,3,2,4],[2,3,3,4]]
+[[1,1,2,3],[1,3,2,4],[3,1,4,2],[3,2,4,4]]
+[[1,1,3,3],[3,1,4,2],[1,3,2,4],[3,2,4,4]]
+[[1,1,3,3],[3,1,4,2],[1,3,2,4],[2,2,4,4]]
+[[0,0,4,1],[7,0,8,2],[6,2,8,3],[5,1,6,3],[4,0,5,1],[6,0,7,2],[4,2,5,3],[2,1,4,3],[0,1,2,2],[0,2,2,3],[4,1,5,2],[5,0,6,1]]
+[[-100000,-100000,100000,100000]]
+[[0,0,2,2],[1,1,3,3],[2,0,3,1],[0,3,3,4]]
+*/
 class Solution {
 public:
     bool isRectangleCover(vector<vector<int>>& rectangles) {
-      if (1 == rectangles.size()) {
-        // the trivial case
-        return true;
-      }
-      
-      int rawAreaSum = 0u;
-      vector<Rectangle> recs;
-      int minL = INT_MAX, maxR = INT_MIN, minB = INT_MAX, maxT = INT_MIN;
-      for (auto &rectangle : rectangles) {
-        Rectangle rec(rectangle[0], rectangle[2], rectangle[1], rectangle[3]);
-        recs.push_back(rec);
-        rawAreaSum += abs(rec.r - rec.l)*abs(rec.t - rec.b);
-        minL = min(minL, rec.l);
-        maxR = max(maxR, rec.r);
-        minB = min(minB, rec.b);
-        maxT = max(maxT, rec.t);
-      }
-      
-      // Discretize and index each of "rec.l & rec.r".
-      set<int> sortedDedupedXSet;
-      for (auto &rec : recs) {
-        sortedDedupedXSet.insert(rec.l);
-        sortedDedupedXSet.insert(rec.r);
-      }
-      vector<int> sortedDedupedXList;
-      for (auto it = sortedDedupedXSet.begin(); it != sortedDedupedXSet.end(); ++it) {
-        sortedDedupedXList.push_back(*it);
-      }
-      
-      // printf("After the traversal, sortedDedupedXList.size() == %lu.\n", sortedDedupedXList.size());
+        ULL rawAreaSum = 0;
+        int minL = INT_MAX, maxR = INT_MIN, minB = INT_MAX, maxT = INT_MIN;
+        vector<vector<int>> edges;
+        for (auto &rectangle : rectangles) {
+            rawAreaSum += (ULL)abs(rectangle[0] - rectangle[2])*(ULL)abs(rectangle[1] - rectangle[3]);
+            vector<int> bottomEdge = {rectangle[0], rectangle[2], +1, rectangle[1]};
+            edges.push_back(bottomEdge);
+            vector<int> topEdge = {rectangle[0], rectangle[2], -1, rectangle[3]};
+            edges.push_back(topEdge);
+            minL = min(rectangle[0], minL);
+            maxR = max(rectangle[2], maxR);
+            minB = min(rectangle[1], minB);
+            maxT = max(rectangle[3], maxT);
+        }
+        ULL hullArea = (ULL)abs(maxT - minB)*(ULL)abs(maxR - minL);
+        if (debug) printf("rawAreaSum: %lu, minL: %d, maxR: %d\n", rawAreaSum, minL, maxR);
 
-      // reset "discretizedXDict" && "theTree"
-      memset(discretizedXDict, 0, sizeof(discretizedXDictSize));
-      discretizedXDictSize = sortedDedupedXList.size(); 
-      int theTreeIdxUpper = 3*(sortedDedupedXList.size()+1);
-      for (int i = 0; i < theTreeIdxUpper; ++i) {
-        theTree[i].idx = 0;
-        theTree[i].fullCoverAccDiff = 0;
-      }
-      
-      for (Rectangle &rec : recs) {
-        auto itL = lower_bound(sortedDedupedXList.begin(), sortedDedupedXList.end(), rec.l);
-        rec.xIndexL = (int)(itL - sortedDedupedXList.begin());
-        discretizedXDict[rec.xIndexL] = rec.l;
-                
-        auto itR = lower_bound(sortedDedupedXList.begin(), sortedDedupedXList.end(), rec.r);
-        rec.xIndexR = (int)(itR - sortedDedupedXList.begin());
-        discretizedXDict[rec.xIndexR] = rec.r;
-      }
-      
-      int rootIdx = 1;
-      SegmentTreeNode &root = theTree[rootIdx];
-      root.idx = rootIdx;
-      root.leftIndexClosed = 0;
-      root.rightIndexOpen = sortedDedupedXList.size()-1;
-      root.leftXClosed = discretizedXDict[root.leftIndexClosed];
-      root.rightXClosed = discretizedXDict[root.rightIndexOpen];
-      
-      vector<vector<int>> sortedYEdgeList;
-      for (Rectangle &rec : recs) {
-        sortedYEdgeList.push_back({rec.b, BOTTOM, rec.xIndexL, rec.xIndexR});
-        sortedYEdgeList.push_back({rec.t, TOP, rec.xIndexL, rec.xIndexR});
-      }
-      sort(sortedYEdgeList.begin(), sortedYEdgeList.end(), less<vector<int>>());
-      
-      // printf("sortedDedupedXList.size() == %d, sortedYEdgeList.size() == %d\n", sortedDedupedXList.size(), sortedYEdgeList.size());
-      
-      int lastBenchY = INT_MAX;
-      bool gotOverlay = false;
-      int mergedArea = 0;
-      for (auto &yEdge : sortedYEdgeList) {
-        int currentY = yEdge[0];
-        if (INT_MAX != lastBenchY && currentY != lastBenchY) {
-          if (0 == root.fullCoverAccDiff) {
-            // [TRICK] only check this condition when "lastBenchY" is updated 
-            // printf("Not fully covered, <currentY:%d, lastBenchY: %d>, returning false\n", currentY, lastBenchY);
-            return false;
-          }
-          mergedArea += (currentY-lastBenchY)*(maxR-minL);
+        sort(edges.begin(), edges.end(), [](vector<int> const& lhs, vector<int> const& rhs) {
+            if (lhs[3] != rhs[3]) return lhs[3] < rhs[3];
+            return lhs[2] > rhs[2]; // [WARNING] Bottom edge comes first!
+        });
+
+        SegTreeNode* root = new SegTreeNode(minL, maxR);
+
+        ULL mergedArea = 0;
+        int lastY = INT_MAX, expectedActiveBottomLength = (maxR - minL);
+        for (auto &edge : edges) {
+            int currentY = edge[3];
+            if (INT_MAX != lastY && currentY != lastY) {
+                // [TRICK] only check this condition when "lastY" is updated 
+                if (root->activeBottomLengthSum != expectedActiveBottomLength) {
+                    return false;
+                }
+                mergedArea += (ULL)(currentY-lastY)*expectedActiveBottomLength;
+                if (debug) printf("lastY: %d, currentY:%d\n", lastY, currentY);
+            }
+            root->RangeAdd(edge[0], edge[1], edge[2], 0);
+            lastY = currentY;
         }
-        RangeAdd(&root, yEdge[2], yEdge[3], {yEdge[0], yEdge[1]}, gotOverlay, 0);
-        if (gotOverlay) {
-          // printf("Got overlay, returning false");
-          return false;
-        }
-        lastBenchY = currentY;
-      }
-      int hullArea = abs(maxT - minB)*abs(maxR - minL);
-      
-      // printf("mergedArea: %d, hullArea: %d, rawAreaSum: %d\n", mergedArea, hullArea, rawAreaSum);
-      if (mergedArea != rawAreaSum) return false;
-      if (mergedArea != hullArea) return false;
-      return true;
+
+        if (debug) printf("mergedArea = %lu\n", mergedArea);
+        return (mergedArea == rawAreaSum && mergedArea == hullArea);
     }
 };
-
-static const auto magic = []() {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
-  std::cout.tie(nullptr);
-  return nullptr;
-}();
