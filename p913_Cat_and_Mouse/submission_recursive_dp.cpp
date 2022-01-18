@@ -164,7 +164,7 @@ public:
         - the dfs stack then pops back to "u4", also having no "not-in-openset/not-on-stack StateTupleNeighbour" to go on; 
         - the dfs stack then pops back to "u3" and goes on to "v" again, now that "u4" is a "not-in-openset/not-on-stack StateTupleNeighbour" of "v", shall we check it? yes but it will immediately return to "v", remaining undetermined too;
         - ...
-        - the dfs stack then pops back to "u1" and goes on to "v"again, now that both "u3" and "u4" are "not-in-openset/not-on-stack StateTupleNeighbours" of "v", shall we check them? yes but again they'll immediately return to "v", remaining undetermined too;
+        - the dfs stack then pops back to "u1" and goes on to "v" again, now that both "u3" and "u4" are "not-in-openset/not-on-stack StateTupleNeighbours" of "v", shall we check them? yes but again they'll immediately return to "v", remaining undetermined too;
         - the dfs stack then pops back to "u1" and goes on to "ds", which now makes "u1" determined too.
         
         It's only by now that we can do a "top-down" dfs from "u1" again to determine all remaining "StateTuple"s, which merely resembles the "bottom-up" approach!
