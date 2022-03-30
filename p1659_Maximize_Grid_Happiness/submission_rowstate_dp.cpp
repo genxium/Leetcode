@@ -10,7 +10,7 @@ int const ROW_STATE_UPPER = (3*3*3*3*3); // Each cell has 3 states: introvert, e
 int introCountOf[ROW_STATE_UPPER], extroCountOf[ROW_STATE_UPPER];
 int horizontalHappiness[ROW_STATE_UPPER], verticalHappiness[ROW_STATE_UPPER][ROW_STATE_UPPER];
 
-int dp[MAXY][MAXINTROCOUNT+1][MAXEXTROCOUNT+1][ROW_STATE_UPPER]; // "dp[y][introCount][extroCount][rowState] == t" means that when the last row is in "rowState", using in total "introCount & extroCount", the "grid[0,...,y]" results in max happiness "t", btw ""(3*3*3*3*3)*5*7*7 == 59535"
+int dp[MAXY][MAXINTROCOUNT+1][MAXEXTROCOUNT+1][ROW_STATE_UPPER]; // "dp[y][introCount][extroCount][rowState] == t" means that when the last row is in "rowState", using in total "introCount & extroCount", the "grid[0,...,y]" results in max happiness "t", btw "(3*3*3*3*3)*5*7*7 == 59535"
 
 /*
 test case#1
