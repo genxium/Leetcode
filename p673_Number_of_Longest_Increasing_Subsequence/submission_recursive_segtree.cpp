@@ -24,79 +24,79 @@ PII aggregate(PII lhs, PII rhs) {
 class SegmentTreeNode {
 private:
     int calcMid() {
-        return ((leftIndexClosed + rightIndexOpen) >> 1);
+        return ((leftClosed + rightOpen) >> 1);
     }
     
 public:
-    int leftIndexClosed;
-    int rightIndexOpen; 
+    int leftClosed;
+    int rightOpen; 
 
     /*
-    {lisLength, lisCount}, means that the "LongestIncreasingSubsequence"s ended at "nums[...]" which are valued(INSTEAD OF "indexed") within [leftIndexClosed, rightIndexOpen) has maximum length "lisLength" and there're "lisCount" of it.
+    {lisLength, lisCount}, means that the "LongestIncreasingSubsequence"s ended at "nums[...]" which are valued(INSTEAD OF "indexed") within [leftClosed, rightOpen) has maximum length "lisLength" and there're "lisCount" of it.
     
     This definition is CRITICAL, because it makes any "root->lisResult" an aggregate of its childrens' "lisResult"s.
     */
     PII lisResult;
 
-    SegmentTreeNode* lChild = NULL; // To be initialized upon construction, and would be NULL for a leaf, i.e. (rightIndexOpen == 1 + leftIndexClosed).
-    SegmentTreeNode* rChild = NULL; // To be initialized upon construction, and would be NULL for a leaf, i.e. (rightIndexOpen == 1 + leftIndexClosed).
+    SegmentTreeNode* lChild = NULL; // To be initialized upon construction, and would be NULL for a leaf, i.e. (rightOpen == 1 + leftClosed).
+    SegmentTreeNode* rChild = NULL; // To be initialized upon construction, and would be NULL for a leaf, i.e. (rightOpen == 1 + leftClosed).
     
-    SegmentTreeNode(int newSegLeftIndexClosed, int newSegRightIndexOpen) {
-        this->leftIndexClosed = newSegLeftIndexClosed;
-        this->rightIndexOpen = newSegRightIndexOpen;
+    SegmentTreeNode(int newSegLeftClosed, int newSegRightOpen) {
+        this->leftClosed = newSegLeftClosed;
+        this->rightOpen = newSegRightOpen;
         this->lisResult = INIT_LIS_RESULT;
     }
     
     SegmentTreeNode* getOrCreateLChild() {
-        if (!lChild) lChild = new SegmentTreeNode(leftIndexClosed, calcMid());
+        if (!lChild) lChild = new SegmentTreeNode(leftClosed, calcMid());
         return lChild;
     }
     
     SegmentTreeNode* getOrCreateRChild() {
-        if (!rChild) rChild = new SegmentTreeNode(calcMid(), rightIndexOpen);
+        if (!rChild) rChild = new SegmentTreeNode(calcMid(), rightOpen);
         return rChild;
     }
 
-    void RangeAdd(int newSegLeftIndexClosed, int newSegRightIndexOpen, PII newLisResult, int level) {
-        // Reject invalid "[newSegLeftIndexClosed, newSegRightIndexOpen)"s. 
-        if (newSegLeftIndexClosed >= newSegRightIndexOpen) return;
-        if (newSegLeftIndexClosed >= rightIndexOpen) return;
-        if (newSegRightIndexOpen <= leftIndexClosed) return;
+    void RangeAdd(int newSegLeftClosed, int newSegRightOpen, PII newLisResult, int level) {
+        // Reject invalid "[newSegLeftClosed, newSegRightOpen)"s. 
+        if (newSegLeftClosed >= newSegRightOpen) return;
+        if (newSegLeftClosed >= rightOpen) return;
+        if (newSegRightOpen <= leftClosed) return;
 
         int indentSpaceCount = (level << 1);
-        if (debug) printf("%*sRangeAdd, [newSegLeftIndexClosed:%d, newSegRightIndexOpen:%d), (newLisLength: %d, newLisCount: %d)\n", indentSpaceCount, "", newSegLeftIndexClosed, newSegRightIndexOpen, newLisResult.first, newLisResult.second);
+        if (debug) printf("%*sRangeAdd, [newSegLeftClosed:%d, newSegRightOpen:%d), (newLisLength: %d, newLisCount: %d)\n", indentSpaceCount, "", newSegLeftClosed, newSegRightOpen, newLisResult.first, newLisResult.second);
 
-        if (newSegLeftIndexClosed <= leftIndexClosed && rightIndexOpen <= newSegRightIndexOpen) {
+        if (newSegLeftClosed <= leftClosed && rightOpen <= newSegRightOpen) {
             lisResult = aggregate(newLisResult, lisResult);
             if (debug) printf("%*sRangeAdd-END#1, updated (newLisLength: %d, newLisCount: %d)\n", indentSpaceCount, "", lisResult.first, lisResult.second);
             return;
         }
 
-        getOrCreateLChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, newLisResult, level+1);
-        getOrCreateRChild()->RangeAdd(newSegLeftIndexClosed, newSegRightIndexOpen, newLisResult, level+1);        
+        getOrCreateLChild()->RangeAdd(newSegLeftClosed, newSegRightOpen, newLisResult, level+1);
+        getOrCreateRChild()->RangeAdd(newSegLeftClosed, newSegRightOpen, newLisResult, level+1);        
         lisResult = aggregate(lChild->lisResult, rChild->lisResult);
         if (debug) printf("%*sRangeAdd-END#2, updated (newLisLength: %d, newLisCount: %d)\n", indentSpaceCount, "", lisResult.first, lisResult.second);
     }
 
-    PII RangeMax(int targetLeftIndexClosed, int targetRightIndexOpen) {
+    PII RangeMax(int targetLeftClosed, int targetRightOpen) {
         PII result = INIT_LIS_RESULT;
         
-        // Reject invalid "[targetLeftIndexClosed, targetRightIndexOpen)"s. 
-        if (targetLeftIndexClosed >= targetRightIndexOpen) return result;
-        if (targetLeftIndexClosed >= rightIndexOpen) return result;
-        if (targetRightIndexOpen <= leftIndexClosed) return result;
+        // Reject invalid "[targetLeftClosed, targetRightOpen)"s. 
+        if (targetLeftClosed >= targetRightOpen) return result;
+        if (targetLeftClosed >= rightOpen) return result;
+        if (targetRightOpen <= leftClosed) return result;
 
-        if (targetLeftIndexClosed <= leftIndexClosed && rightIndexOpen <= targetRightIndexOpen) {
+        if (targetLeftClosed <= leftClosed && rightOpen <= targetRightOpen) {
             return lisResult;
         }
                 
-        if (lChild) result = aggregate(result, lChild->RangeMax(targetLeftIndexClosed, targetRightIndexOpen));
-        if (rChild) result = aggregate(result, rChild->RangeMax(targetLeftIndexClosed, targetRightIndexOpen));
+        if (lChild) result = aggregate(result, lChild->RangeMax(targetLeftClosed, targetRightOpen));
+        if (rChild) result = aggregate(result, rChild->RangeMax(targetLeftClosed, targetRightOpen));
         
         /*
         [WARNING]
         
-        By now the "result" is for interval [targetLeftIndexClosed, targetRightIndexOpen), which DOESN'T FULLY COVER [this->leftIndexClosed, this->rightIndexOpen), hence DON'T UPDATE "this->lisResult" by "result"!
+        By now the "result" is for interval [targetLeftClosed, targetRightOpen), which DOESN'T FULLY COVER [this->leftClosed, this->rightOpen), hence DON'T UPDATE "this->lisResult" by "result"!
         */
         return result;
     }
@@ -110,7 +110,6 @@ public:
             minNum = min(minNum, num);
             maxNum = max(maxNum, num);
         }
-        // [WARNING] It's better to index "nums" first, but anyway it works for now.
         SegmentTreeNode* root = new SegmentTreeNode(minNum, maxNum+1);
         
         for (int i = 0; i < nums.size(); ++i) {
