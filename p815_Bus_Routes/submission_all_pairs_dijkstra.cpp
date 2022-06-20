@@ -1,4 +1,16 @@
-bool debug = true;
+/*
+test cases
+[[1,2,7],[3,6,7]]
+1
+6
+[[7,12],[4,5,15],[6],[15,19],[9,12,13]]
+15
+12
+[[1,7],[3,5]]
+5
+5
+*/
+bool debug = false;
 typedef unordered_set<int> ADJ_ELE;
 typedef unordered_map<int, ADJ_ELE> ADJ;
 
@@ -57,34 +69,24 @@ void modifiedDijkstra(int s, ADJ &adj, int g[][MAXN], bool* closedSet) {
     closedSet[s] = true;
 }
 
-/*
-test cases
-[[1,2,7],[3,6,7]]
-1
-6
-[[7,12],[4,5,15],[6],[15,19],[9,12,13]]
-15
-12
-[[1,7],[3,5]]
-5
-5
-*/
 class Solution {
 public:
     int numBusesToDestination(vector<vector<int>>& routes, int source, int target) {
         if (source == target) return 0;
-        /*
-        Each "routes[i] == j" indicates a "1" in the following matrix
+		/*  
+        Each "r[i] containing an s[j]" indicates a "1" in the following matrix
         ```
-             r0 r1 r2 ... rn-1
-        s0
-        s1
-        .
-        .
-        .
-        sm-1
+               |   r[0] r[1] r[2] ... r[n-1]
+        -------------------------------------
+        s[0]   |
+        s[1]   |
+        s[2]   |
+        .      |
+        .      |
+        .      |
+        s[m-1] |
         ```
-        where n <= 500 && m <= 10^6. The constraint "sum(routes[i].length) <= 10^5" limits the number of "1"s, i.e. if each row has 500 "1"s, then there're at most only 200 rows -- fairly sparse.
+        where n <= 500 && each s[j] < 10^6 && m < 10^5. The constraint "sum(routes[i].length) <= 10^5" limits the number of "1"s, i.e. if each row has 500 "1"s, then there're at most only 200 rows -- fairly sparse.
         */
         int n = routes.size();
         unordered_map<int, unordered_set<int>> stopToRoutes;
@@ -93,7 +95,7 @@ public:
             for (int stop : stops) stopToRoutes[stop].insert(u);
         }
 
-        ADJ adjRoutes;
+        ADJ adjRoutes; // Easier to work with the indices than "adjStops"
         for (auto &[stop, itsRoutes] : stopToRoutes) {
             for (auto u : itsRoutes) {
                 for (auto v : itsRoutes) {
