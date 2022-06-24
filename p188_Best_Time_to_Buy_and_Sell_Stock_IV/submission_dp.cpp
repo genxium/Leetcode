@@ -8,7 +8,7 @@ That "dp[i][c][STATE_HOLDING_STOCK | STATE_NOT_HOLDING_STOCK] == x" means that t
 - if "STATE_NOT_HOLDING_STOCK", there is a "prices[v <= i]" already sold & accounted in "dp[i][c][STATE_NOT_HOLDING_STOCK]".
 
 dp[i][c][STATE_NOT_HOLDING_STOCK] = max{
-                    dp[i-1][c-1][STATE_HOLDING_STOCK] + prices[i], // sold at "prices[i]"
+                    dp[i-1][c][STATE_HOLDING_STOCK] + prices[i], // sold at "prices[i]"
                     dp[i-1][c][STATE_NOT_HOLDING_STOCK]
               }
 
@@ -20,6 +20,7 @@ dp[i][c][STATE_HOLDING_STOCK] = max{
 int dp[MAXN][MAXK+1][2]; 
 
 /*
+test cases
 2
 [2,4,1]
 2
@@ -69,9 +70,7 @@ public:
                     int sellingTodayCand = dp[i-1][c][STATE_HOLDING_STOCK] + prices[i];
                     if (sellingTodayCand > dp[i][c][STATE_NOT_HOLDING_STOCK]) {
                         dp[i][c][STATE_NOT_HOLDING_STOCK] = sellingTodayCand;
-                        if (debug) {    
-                            printf("Updated dp[i:%d][c:%d][STATE_NOT_HOLDING_STOCK] to %d by selling at prices[i:%d] == %d for dp[i-1:%d][c:%d][STATE_HOLDING_STOCK] == %d\n", i, c, dp[i][c][STATE_NOT_HOLDING_STOCK], i, prices[i], i-1, c, dp[i-1][c][STATE_HOLDING_STOCK]);
-                        }
+                        if (debug) printf("Updated dp[i:%d][c:%d][STATE_NOT_HOLDING_STOCK] to %d by selling at prices[i:%d] == %d for dp[i-1:%d][c:%d][STATE_HOLDING_STOCK] == %d\n", i, c, dp[i][c][STATE_NOT_HOLDING_STOCK], i, prices[i], i-1, c, dp[i-1][c][STATE_HOLDING_STOCK]);
                     }    
                 }
 
@@ -80,18 +79,14 @@ public:
                     int buyingTodayCand = dp[i-1][c-1][STATE_NOT_HOLDING_STOCK] - prices[i];
                     if (buyingTodayCand > dp[i][c][STATE_HOLDING_STOCK]) {
                         dp[i][c][STATE_HOLDING_STOCK] = buyingTodayCand;
-                        if (debug) {    
-                            printf("Updated dp[i:%d][c:%d][STATE_HOLDING_STOCK] to %d by buying at prices[i:%d] == %d\n", i, c, dp[i][c][STATE_HOLDING_STOCK], i, prices[i]);
-                        }
+                        if (debug) printf("Updated dp[i:%d][c:%d][STATE_HOLDING_STOCK] to %d by buying at prices[i:%d] == %d\n", i, c, dp[i][c][STATE_HOLDING_STOCK], i, prices[i]);
                     }    
                 }
                 
                 if (dp[i][c][STATE_NOT_HOLDING_STOCK] <= ans) continue;
                 
                 ans = dp[i][c][STATE_NOT_HOLDING_STOCK];
-                if (debug) {    
-                    printf("\tUpdated ans to %d by dp[i:%d][c:%d][STATE_NOT_HOLDING_STOCK]\n", ans, i, c);
-                }                    
+                if (debug) printf("\tUpdated ans to %d by dp[i:%d][c:%d][STATE_NOT_HOLDING_STOCK]\n", ans, i, c);              
             }
         }
         
