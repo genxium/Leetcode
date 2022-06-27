@@ -170,6 +170,6 @@ public:
         if (2 > A.size()) return false;
         // return dpBySumAsState(A);
         // return dpByEleAsStateBitOp(A);
-        return dpByEleAsState(A); // slower then the "BitOp" version
+        return dpByEleAsState(A); // slower than the "BitOp" version
     }
 };
