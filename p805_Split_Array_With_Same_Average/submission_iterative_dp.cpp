@@ -10,6 +10,7 @@ test cases
 [1,100]
 [1,6,1]
 [0]
+[3,1]
 [5,16,4,11,4]
 */
 class Solution {
@@ -49,6 +50,71 @@ public:
     }
     
     bool dpByEleAsState(vector<int>& A) {
+        /*
+        The key idea here is to find the target subset in one of the following three sources.
+        1. Find solely in the first half, i.e. A[0, ..., halfN).
+        2. Find solely in the second half, i.e. A[halfN, ..., n).
+        3. Find a "primer subset" with sum "s2" in the second half, then find the "counterpart subset" with sum "s1" in the first half. 
+        */
+        int n = A.size(), halfN = (n+1)/2, w = 0;
+        for (int i = 0; i < n; ++i) {
+            w += A[i];
+        }
+        
+        unordered_map<int, unordered_set<int>> counterFirstHalf; // counterFirstHalf[k] == {sum1, sum2, ...}
+        set<pair<int, int>> dp1; // any {k1, s1} in dp1 means that sum "s1" is possible using "k1" elements in the first half
+        dp1.insert({0, 0}); // init
+        for (int i = 0; i < halfN; ++i) {
+            set<pair<int, int>> tmp; 
+            for (auto &[k1, s1] : dp1) {
+                tmp.insert({k1+1, s1+A[i]});
+            }
+            for (auto &[k1, s1] : tmp) {
+                dp1.insert({k1, s1});
+            }
+        }
+        
+        for (auto &[k1, s1] : dp1) {
+            if (k1 > 0 && n*s1 == w*k1) {
+                if (debug) printf("Can produce subset sum %d by %d elements.\n", s1, k1);
+                return true;
+            }
+            counterFirstHalf[k1].insert(s1);
+        }
+        
+        set<pair<int, int>> dp2; // any {k2, s2} in dp2 means that sum "s2" is possible using "k2" elements in the second half
+        dp2.insert({0, 0}); // init
+        for (int i = halfN; i < n; ++i) {
+            set<pair<int, int>> tmp; 
+            for (auto &[k2, s2] : dp2) {
+                tmp.insert({k2+1, s2+A[i]});
+            }
+            for (auto &[k2, s2] : tmp) {
+                dp2.insert({k2, s2});
+            }
+        }
+        
+        for (auto &[k2, s2] : dp2) {
+            if (k2 > 0 && n*s2 == w*k2) {
+                if (debug) printf("Can produce subset sum %d by %d elements.\n", s2, k2);
+                return true;
+            }
+            for (int k = k2+1; k < n; ++k) {
+                if (w*k % n != 0) continue;
+                int k1 = k-k2; // implied "k1 > 0", a non-empty counterpart
+                int s = w*k/n;
+                int s1 = s-s2;
+                if (counterFirstHalf[k1].count(s1)) {
+                    if (debug) printf("Can produce subset sum %d by %d + %d elements.\n", s, k1+k2);
+                    return true;
+                }
+            }   
+        }
+        
+        return false;   
+    }
+    
+    bool dpByEleAsStateBitOp(vector<int>& A) {
         int n = A.size(), halfN = (n+1)/2, w = 0;
         for (int i = 0; i < n; ++i) {
             w += A[i];
@@ -62,14 +128,14 @@ public:
             int lsb = (x & -x); // least significant bit
             if (0 == lsb) continue;
             int i = (int)log2(lsb);
-            dp1[x] = dp1[x^lsb] + A[i];
+            dp1[x] = dp1[x^lsb] + A[i]; // it's guaranteed that "(x^lsb) < x" here
             if (debug) printf("dp1[x:%d] == %d\n", x, dp1[x]);
-            int k = __builtin_popcount(x);
-            if (k < n && n*dp1[x] == w*k) {
-                if (debug) printf("Can produce subset sum %d by %d elements.\n", x, k);
+            int k1 = __builtin_popcount(x);
+            if (n*dp1[x] == w*k1) {
+                if (debug) printf("Can produce subset sum %d by %d elements.\n", x, k1);
                 return true;
-            } 
-            counterFirstHalf[k].insert(dp1[x]);
+            }
+            counterFirstHalf[k1].insert(dp1[x]);
         }
         
         vector<int> dp2(secondHalfStates, 0); // dp2[10110] == A[1+halfN]+A[2+halfN]+A[4+halfN]
@@ -80,10 +146,10 @@ public:
             dp2[x] = dp2[x^lsb] + A[i+halfN];
             if (debug) printf("dp2[x:%d] == %d\n", x, dp2[x]);
             int k2 = __builtin_popcount(x);
-            if (k2 < n && n*dp2[x] == w*k2) {
+            if (n*dp2[x] == w*k2) {
                 if (debug) printf("Can produce subset sum %d by %d elements.\n", x, k2);
                 return true;
-            }   
+            }
             
             for (int k = k2+1; k < n; ++k) {
                 if (w*k % n != 0) continue;
@@ -101,7 +167,9 @@ public:
     }
     
     bool splitArraySameAverage(vector<int>& A) {
+        if (2 > A.size()) return false;
         // return dpBySumAsState(A);
-        return dpByEleAsState(A);
+        // return dpByEleAsStateBitOp(A);
+        return dpByEleAsState(A); // slower then the "BitOp" version
     }
 };
