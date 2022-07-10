@@ -18,7 +18,7 @@ class Solution {
 public:
     int dfs(int l, int r, int c, int K, vector<int> &ps /* prefixSum */) {
         int len = r-l+1; 
-        if (len < 1+c*(K-1)) return dp[l][r][c] = INT_MAX; // couldn't make "c" cuts on length "len"
+        if (len < 1+c*(K-1)) return dp[l][r][c] = INT_MAX; // couldn't make "c" merges on length "len"
         if (INVALID != dp[l][r][c]) return dp[l][r][c];
         if (0 == c) return dp[l][r][c] = 0;
         if (1 == c) {
@@ -29,20 +29,20 @@ public:
         }
         
         int ret = INT_MAX;
-        bool cutToOne = len == 1+c*(K-1);
-        // It's noticeable that when "true == cutToOne", we DON'T care about "what stone indices are remained from the left cuts or the right cuts", the "finalizedCutCost" is always "ps[r+1]-ps[l]"
-        int finalizedCutCost = (cutToOne ?  ps[r+1]-ps[l] : 0);
-        // Consider each "stones[l, ..., i]" and "stones[i+1, ..., r]" to share the total "c-cutToOne" steps
+        bool mergeToOne = len == 1+c*(K-1);
+        // It's noticeable that when "true == mergeToOne", we DON'T care about "what stone indices are remained from the left merges or the right merges", the "finalizedMergeCost" is always "ps[r+1]-ps[l]"
+        int finalizedMergeCost = (mergeToOne ?  ps[r+1]-ps[l] : 0);
+        // Consider each "stones[l, ..., i]" and "stones[i+1, ..., r]" to share the total "c-mergeToOne" steps
         for (int i = l; i+1 <= r; ++i) {
             int leftLen = i-l+1;
-            int leftCUpper = min(leftLen/(K-1), c-cutToOne);
+            int leftCUpper = min(leftLen/(K-1), c-mergeToOne);
             for (int leftC = 0; leftC <= leftCUpper; ++leftC) {
-                int rightC = c-cutToOne-leftC;
+                int rightC = c-mergeToOne-leftC;
                 int leftCand = dfs(l, i, leftC, K, ps);
                 if (INT_MAX == leftCand) continue;
                 int rightCand = dfs(i+1, r, rightC, K, ps);
                 if (INT_MAX == rightCand) continue;
-                int cand = leftCand+rightCand+finalizedCutCost;
+                int cand = leftCand+rightCand+finalizedMergeCost;
                 ret = min(ret, cand);
             }
         }
