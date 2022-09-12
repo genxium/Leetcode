@@ -77,24 +77,19 @@ public:
         }
 
         // 0 == fullCoverAccDiff, aggregate from children
-        bool currentNodeFullyCovered = (targetLeftIndexClosed <= leftIndexClosed && rightIndexOpen <= targetRightIndexOpen);
     
-        int toRet = 0;
+        activeBottomLengthSum = 0;
         if (NULL != lChild) {
             int cand = lChild->RangeSum(targetLeftIndexClosed, targetRightIndexOpen, level+1); 
-            toRet += cand;
+            activeBottomLengthSum += cand;
         }
 
         if (NULL != rChild) {
             int cand = rChild->RangeSum(targetLeftIndexClosed, targetRightIndexOpen, level+1);
-            toRet += cand;
+            activeBottomLengthSum += cand;
         }
 
-        if (currentNodeFullyCovered) {
-            activeBottomLengthSum = toRet;
-        }
-
-        return toRet;
+        return activeBottomLengthSum;
     }
 
     void RangeAdd(int newSegLeftIndexClosed, int newSegRightIndexOpen, int unifiedDiff, int level) {

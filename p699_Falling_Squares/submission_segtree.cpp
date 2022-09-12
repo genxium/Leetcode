@@ -79,10 +79,7 @@ public:
             return;
         }
 
-        if (newUnifiedValue == unifiedValue) {
-            // Prohibits a larger value to be written in.
-            return;
-        }
+        if (newUnifiedValue == unifiedValue) return;
 
         int residueUnifiedValue = unifiedValue;
         unifiedValue = INVALID; // By now it's certain that "this->unifiedValue" is no longer unified.
