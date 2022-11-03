@@ -1,6 +1,7 @@
 Similar problems for the `dp approach`
 - [p213_House_Robber_II](https://github.com/genxium/Leetcode/tree/master/p213_House_Robber_II) 
 - [p309_Best_Time_to_Buy_and_Sell_Stock_with_Cooldown](https://github.com/genxium/Leetcode/tree/master/p309_Best_Time_to_Buy_and_Sell_Stock_with_Cooldown) 
+- [p546_Remove_Boxes](https://github.com/genxium/Leetcode/tree/master/p546_Remove_Boxes), in fact not very similar to the current problem but it uses an interesting meaning of the `dp` variable for state maintenance
 - [p689_Maximum_Sum_of_3_Non-Overlapping_Subarrays](https://github.com/genxium/Leetcode/tree/master/p689_Maximum_Sum_of_3_Non-Overlapping_Subarrays) 
 - [p714_Best_Time_to_Buy_and_Sell_Stock_with_Transaction_Fee](https://github.com/genxium/Leetcode/tree/master/p714_Best_Time_to_Buy_and_Sell_Stock_with_Transaction_Fee) 
 - [p787_Cheapest_Flights_Within_K_Stops](https://github.com/genxium/Leetcode/tree/master/p787_Cheapest_Flights_Within_K_Stops)
