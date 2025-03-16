@@ -3,3 +3,5 @@ solution
 */*.exe
 draft.cpp
 draft.java
+*.vs
+**/*.vs
