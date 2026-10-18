@@ -107,8 +107,6 @@ public:
             /*
             * Having "INVALID != residueUnifiedValue" implies that it's "more recent" than "any residueUnifiedValue from the subtree".
             */
-            int leftResidueLeftClosed = leftIndexClosed, leftResidueRightOpen = newSegLeftIndexClosed;
-            int rightResidueLeftClosed = newSegRightIndexOpen, rightResidueRightOpen = rightIndexOpen;
             getOrCreateLChild()->RangeWrite(max(leftIndexClosed, newSegLeftIndexClosed), min(rightIndexOpen, newSegRightIndexOpen), residueUnifiedValue, false, level+1);
             getOrCreateRChild()->RangeWrite(max(leftIndexClosed, newSegLeftIndexClosed), min(rightIndexOpen, newSegRightIndexOpen), residueUnifiedValue, false, level+1);
         }
