@@ -1,13 +1,12 @@
 bool debug = false;
 int const MAXPOS = 101000001; // 101000001 == 100,000,000 + 1,000,000
-
 int const INVALID = -1;
 
 // See https://www.yinxiang.com/everhub/note/b904af18-03fd-4dbc-a3d2-67a0daa1518e for an introduction to SegmentTree properties.
 class SegTreeNode {
 public:
     int unifiedValue; // a.k.a. "unified height in x-range [leftIndexClosed, rightIndexOpen)"
-    int highestValue; // To speed up query!
+    int highestValue; // To speed up query
     int leftIndexClosed;
     int rightIndexOpen;
     SegTreeNode* lChild;
@@ -19,6 +18,11 @@ public:
         leftIndexClosed = lClosed;
         rightIndexOpen = rOpen;
         lChild = rChild = NULL;
+    }
+
+    ~SegTreeNode() {
+        if (lChild) delete lChild;
+        if (rChild) delete rChild;
     }
 
     int calcMid() {
@@ -105,10 +109,8 @@ public:
             */
             int leftResidueLeftClosed = leftIndexClosed, leftResidueRightOpen = newSegLeftIndexClosed;
             int rightResidueLeftClosed = newSegRightIndexOpen, rightResidueRightOpen = rightIndexOpen;
-            getOrCreateLChild()->RangeWrite(leftResidueLeftClosed, leftResidueRightOpen, residueUnifiedValue, false, level+1);
-            getOrCreateLChild()->RangeWrite(rightResidueLeftClosed, rightResidueRightOpen, residueUnifiedValue, false, level+1); 
-            getOrCreateRChild()->RangeWrite(leftResidueLeftClosed, leftResidueRightOpen, residueUnifiedValue, false, level+1);
-            getOrCreateRChild()->RangeWrite(rightResidueLeftClosed, rightResidueRightOpen, residueUnifiedValue, false, level+1);
+            getOrCreateLChild()->RangeWrite(max(leftIndexClosed, newSegLeftIndexClosed), min(rightIndexOpen, newSegRightIndexOpen), residueUnifiedValue, false, level+1);
+            getOrCreateRChild()->RangeWrite(max(leftIndexClosed, newSegLeftIndexClosed), min(rightIndexOpen, newSegRightIndexOpen), residueUnifiedValue, false, level+1);
         }
 
         getOrCreateLChild()->RangeWrite(newSegLeftIndexClosed, newSegRightIndexOpen, newUnifiedValue, allowResiduePropagation, level+1);
@@ -134,7 +136,8 @@ public:
             int maxOverallH = root->RangeMax(0, MAXPOS+1, 0);
             ans.push_back(maxOverallH);
         }
-
+        delete root;
         return ans;
     }
 };
+

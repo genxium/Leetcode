@@ -19,6 +19,11 @@ public:
         lChild = rChild = NULL;
     }
 
+    ~SegTreeNode() {
+        if (lChild) delete lChild;
+        if (rChild) delete rChild;
+    }
+
     int calcMid() {
         return ((leftIndexClosed+rightIndexOpen) >> 1);
     }
@@ -88,12 +93,8 @@ public:
             /*
             * Having "INVALID != residueUnifiedValue" implies that it's "more recent" than "any residueUnifiedValue from the subtree".
             */
-            int leftResidueLeftClosed = leftIndexClosed, leftResidueRightOpen = newSegLeftIndexClosed;
-            int rightResidueLeftClosed = newSegRightIndexOpen, rightResidueRightOpen = rightIndexOpen;
-            getOrCreateLChild()->RangeWrite(leftResidueLeftClosed, leftResidueRightOpen, residueUnifiedValue, false, level+1);
-            getOrCreateLChild()->RangeWrite(rightResidueLeftClosed, rightResidueRightOpen, residueUnifiedValue, false, level+1); 
-            getOrCreateRChild()->RangeWrite(leftResidueLeftClosed, leftResidueRightOpen, residueUnifiedValue, false, level+1);
-            getOrCreateRChild()->RangeWrite(rightResidueLeftClosed, rightResidueRightOpen, residueUnifiedValue, false, level+1);
+            getOrCreateLChild()->RangeWrite(max(leftIndexClosed, newSegLeftIndexClosed), min(rightIndexOpen, newSegRightIndexOpen), residueUnifiedValue, false, level+1);
+            getOrCreateRChild()->RangeWrite(max(leftIndexClosed, newSegLeftIndexClosed), min(rightIndexOpen, newSegRightIndexOpen), residueUnifiedValue, false, level+1);
         }
 
         getOrCreateLChild()->RangeWrite(newSegLeftIndexClosed, newSegRightIndexOpen, newUnifiedValue, allowResiduePropagation, level+1);
@@ -117,7 +118,7 @@ public:
             int maxOverallH = root->RangeMax(0, MAXPOS+1, 0);
             ans.push_back(maxOverallH);
         }
-
+        delete root;
         return ans;
     }
 };
