@@ -93,8 +93,9 @@ public:
             /*
             * Having "INVALID != residueUnifiedValue" implies that it's "more recent" than "any residueUnifiedValue from the subtree".
             */
-            getOrCreateLChild()->RangeWrite(max(leftIndexClosed, newSegLeftIndexClosed), min(rightIndexOpen, newSegRightIndexOpen), residueUnifiedValue, false, level+1);
-            getOrCreateRChild()->RangeWrite(max(leftIndexClosed, newSegLeftIndexClosed), min(rightIndexOpen, newSegRightIndexOpen), residueUnifiedValue, false, level+1);
+            getOrCreateLChild()->RangeWrite(leftIndexClosed, rightIndexOpen, residueUnifiedValue, false, level+1);
+            getOrCreateRChild()->RangeWrite(leftIndexClosed, rightIndexOpen, residueUnifiedValue, false, level+1);
+            // Both will be stopped by the "full cover" condition immediately
         }
 
         getOrCreateLChild()->RangeWrite(newSegLeftIndexClosed, newSegRightIndexOpen, newUnifiedValue, allowResiduePropagation, level+1);
